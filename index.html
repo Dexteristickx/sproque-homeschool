@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sproque Homeschool Organizer | Integrated School Digital System</title>
+  <meta name="description" content="Secure and integrated curriculum and session management system for homeschool educators." />
+</head>
+<body class="min-h-screen selection:bg-primary-200 selection:text-primary-900">
+  <div class="bg-mesh"></div>
+
+  <!-- Authentication Section -->
+  <section id="loginSection" class="flex min-h-screen items-center justify-center px-6 py-8">
+    <div class="w-full max-w-md glass-card rounded-3xl p-8 animate-fade-in">
+      <div class="mb-8 text-center">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-600 mb-4 shadow-lg shadow-primary-500/30">
+          <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <p class="text-sm font-bold uppercase tracking-widest text-primary-600">Sproque Homeschool</p>
+        <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">Educator Portal</h1>
+        <p class="mt-3 text-slate-500">Secure access to shared curriculum and student tracking.</p>
+      </div>
+
+      <div class="mb-8 flex gap-2 rounded-2xl bg-slate-100/50 p-1.5 backdrop-blur-sm">
+        <button data-auth-mode="login" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300" id="loginToggle">
+          Sign In
+        </button>
+        <button data-auth-mode="register" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300" id="registerToggle">
+          New Account
+        </button>
+      </div>
+
+      <form id="authForm" class="space-y-6">
+        <div class="space-y-1.5">
+          <label for="authEmail" class="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+          <input id="authEmail" type="email" required placeholder="name@sproque.com" class="input-field" />
+        </div>
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between ml-1">
+            <label for="authPassword" class="text-sm font-bold text-slate-700">Password</label>
+          </div>
+          <input id="authPassword" type="password" minlength="6" required placeholder="••••••••" class="input-field" />
+          <p class="mt-2 text-[11px] text-slate-400 italic">Secure access: Minimum 6 characters required.</p>
+        </div>
+        <div id="authError" class="rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-600 hidden animate-fade-in" role="alert"></div>
+        <button id="authSubmit" type="submit" class="btn-primary w-full py-4 text-lg">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Main Application Section -->
+  <div id="appSection" class="hidden min-h-screen">
+    <header class="sticky top-0 z-30 border-b border-white/20 bg-white/60 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 shadow-lg shadow-primary-500/20">
+            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-black tracking-tight text-slate-900">Sproque <span class="text-primary-600">Curriculum</span></h1>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Integrated Learning Hub</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <div class="hidden md:flex flex-col items-end mr-2">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Authenticated as</p>
+            <p id="userEmail" class="text-sm font-bold text-slate-700"></p>
+          </div>
+          <button id="signOutBtn" class="btn-accent px-4 py-2 text-sm">
+            Sign Out
+          </button>
+        </div>
+      </div>
+      
+      <!-- Navigation Tabs -->
+      <nav class="mx-auto max-w-7xl px-6 pb-2">
+        <div class="flex flex-wrap gap-2 overflow-x-auto pb-2 scroll-shadow no-scrollbar">
+          <button data-tab="students" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            Students
+          </button>
+          <button data-tab="topics" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+            Curriculum
+          </button>
+          <button data-tab="sessions" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            Log Session
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="mx-auto max-w-7xl px-6 py-8 animate-fade-in">
+      
+      <!-- Students Section -->
+      <section id="studentsSection" data-section="students" class="hidden space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 class="text-4xl font-black tracking-tight text-slate-900">Student Roster</h2>
+            <p class="mt-2 text-lg text-slate-500 font-medium">Manage learners and their academic progress.</p>
+          </div>
+          <div id="studentCountBadge" class="bg-primary-100 text-primary-700 px-6 py-2 rounded-2xl font-bold text-sm shadow-sm border border-primary-200">
+            0 Students Registered
+          </div>
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-12">
+          <div class="lg:col-span-4 space-y-6">
+            <article class="glass-card rounded-3xl p-6">
+              <h3 class="text-xl font-bold text-slate-900 mb-1">New Enrollment</h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">Add a new student to the homeschool system.</p>
+              
+              <form id="studentForm" class="space-y-5">
+                <div class="space-y-1.5">
+                  <label for="studentName" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Full Name</label>
+                  <input id="studentName" type="text" required placeholder="e.g. Alex Sproque" class="input-field" />
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label for="studentAge" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Age</label>
+                    <input id="studentAge" type="number" min="0" required placeholder="0" class="input-field" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="studentGrade" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Grade</label>
+                    <input id="studentGrade" type="text" required placeholder="e.g. Year 5" class="input-field" />
+                  </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button id="studentSubmit" type="submit" class="btn-primary flex-1">Add Student</button>
+                  <button id="studentCancelBtn" type="button" class="hidden px-4 py-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">Cancel</button>
+                </div>
+              </form>
+            </article>
+          </div>
+          
+          <div class="lg:col-span-8">
+            <div id="studentList" class="grid gap-4 sm:grid-cols-2">
+              <!-- Student cards will be injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Topics Section -->
+      <section id="topicsSection" data-section="topics" class="hidden space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 class="text-4xl font-black tracking-tight text-slate-900">Curriculum</h2>
+            <p class="mt-2 text-lg text-slate-500 font-medium">Plan topics, resources, and track mastery flow.</p>
+          </div>
+          <div id="topicCountBadge" class="bg-accent-100 text-accent-700 px-6 py-2 rounded-2xl font-bold text-sm shadow-sm border border-accent-200">
+            0 Topics Ready
+          </div>
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-12">
+          <div class="lg:col-span-5">
+            <article class="glass-card rounded-3xl p-6 sticky top-32">
+              <h3 class="text-xl font-bold text-slate-900 mb-1">Topic Builder</h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">Design your next learning module.</p>
+              
+              <form id="topicForm" class="space-y-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label for="topicSubject" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Subject</label>
+                    <input id="topicSubject" type="text" required placeholder="Math, Science..." class="input-field" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="topicDate" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Start Date</label>
+                    <input id="topicDate" type="date" required class="input-field" />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label for="topicTitle" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Topic Title</label>
+                  <input id="topicTitle" type="text" required placeholder="e.g. Introduction to Fractals" class="input-field" />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="topicDescription" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Learning Objectives</label>
+                  <textarea id="topicDescription" rows="3" required placeholder="What will be learned?" class="input-field resize-none"></textarea>
+                </div>
+                <div class="space-y-1.5">
+                  <label for="topicResources" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Resources & Links</label>
+                  <textarea id="topicResources" rows="3" placeholder="One link or book per line" class="input-field resize-none"></textarea>
+                </div>
+                <div class="space-y-3">
+                  <label class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Assign Students</label>
+                  <div id="topicStudents" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 scroll-shadow">
+                    <p class="text-xs text-slate-400 italic col-span-2 py-2">Add students to assign them here.</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button id="topicSubmit" type="submit" class="btn-primary flex-1">Save Module</button>
+                  <button id="topicCancelBtn" type="button" class="hidden px-4 py-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">Cancel</button>
+                </div>
+              </form>
+            </article>
+          </div>
+          
+          <div class="lg:col-span-7 space-y-6">
+            <div class="glass-card rounded-2xl p-4 flex flex-wrap gap-4">
+              <div class="flex-1 min-w-[200px]">
+                <label for="subjectFilter" class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Filter Subject</label>
+                <select id="subjectFilter" class="input-field py-1.5 mt-1 border-none bg-slate-50 shadow-inner">
+                  <option value="all">All Subjects</option>
+                </select>
+              </div>
+              <div class="flex-1 min-w-[200px]">
+                <label for="studentFilter" class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Filter Student</label>
+                <select id="studentFilter" class="input-field py-1.5 mt-1 border-none bg-slate-50 shadow-inner">
+                  <option value="all">All Students</option>
+                </select>
+              </div>
+            </div>
+            
+            <div id="topicList" class="space-y-6">
+              <!-- Topic cards will be injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sessions Section -->
+      <section id="sessionsSection" data-section="sessions" class="hidden space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 class="text-4xl font-black tracking-tight text-slate-900">Session Logs</h2>
+            <p class="mt-2 text-lg text-slate-500 font-medium">Record teaching sessions and assessment results.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-12">
+          <div class="lg:col-span-4">
+            <article class="glass-card rounded-3xl p-6 sticky top-32">
+              <h3 class="text-xl font-bold text-slate-900 mb-1">New Session</h3>
+              <p class="text-sm text-slate-500 mb-6 font-medium">Log learner engagement and progress.</p>
+              
+              <form id="sessionForm" class="space-y-5">
+                <div class="space-y-1.5">
+                  <label for="sessionMode" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Session Mode</label>
+                  <select id="sessionMode" class="input-field">
+                    <option value="teaching">Direct Teaching</option>
+                    <option value="testing">Assessment / Test</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label for="sessionStudent" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Student</label>
+                  <select id="sessionStudent" class="input-field" required>
+                    <option value="">Select Student</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label for="sessionTopic" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Topic Module</label>
+                  <select id="sessionTopic" class="input-field" required>
+                    <option value="">Select Topic</option>
+                  </select>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label for="sessionDate" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Date</label>
+                    <input id="sessionDate" type="date" required class="input-field" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label for="sessionDuration" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Duration (min)</label>
+                    <input id="sessionDuration" type="number" min="1" required placeholder="45" class="input-field" />
+                  </div>
+                </div>
+                <div id="sessionScoreGroup" class="hidden space-y-1.5">
+                  <label for="sessionScore" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Assessment Score (%)</label>
+                  <input id="sessionScore" type="number" min="0" max="100" placeholder="0-100" class="input-field" />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="sessionNotes" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Educator Notes</label>
+                  <textarea id="sessionNotes" rows="3" placeholder="Key observations, challenges..." class="input-field resize-none"></textarea>
+                </div>
+                <p id="sessionNotice" class="text-[11px] font-bold text-accent-600 text-center"></p>
+                <button id="sessionSubmit" type="submit" class="btn-primary w-full mt-2">Log Session</button>
+              </form>
+            </article>
+          </div>
+          
+          <div class="lg:col-span-8">
+            <h4 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 ml-1">Recent History</h4>
+            <div id="sessionHistory" class="space-y-4">
+              <!-- Session entries will be injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Global Toasts -->
+  <div id="toastContainer" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
+
+  <!-- Premium Confirm Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-[110] hidden items-center justify-center px-6 transition-all duration-300">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
+    <div class="relative w-full max-w-sm glass-card rounded-3xl p-8 shadow-2xl animate-fade-in">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-100 text-accent-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        </div>
+        <h4 id="confirmTitle" class="text-xl font-bold text-slate-900">Confirm Action</h4>
+      </div>
+      <p id="confirmMessage" class="text-slate-500 font-medium leading-relaxed mb-8"></p>
+      <div class="flex gap-3">
+        <button id="confirmCancel" class="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-100 font-bold text-slate-500 hover:bg-slate-50 transition-colors">Go Back</button>
+        <button id="confirmAccept" class="flex-1 btn-accent">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -82,18 +82,11 @@
       <!-- Navigation Tabs -->
       <nav class="mx-auto max-w-7xl px-6 pb-2">
         <div class="flex flex-wrap gap-2 overflow-x-auto pb-2 scroll-shadow no-scrollbar">
-          <button data-tab="students" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            Students
-          </button>
-          <button data-tab="topics" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
-            Curriculum
-          </button>
-          <button data-tab="sessions" class="tab-btn tab-btn-inactive flex items-center gap-2 whitespace-nowrap">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Log Session
-          </button>
+          <button data-tab="students" class="tab-btn tab-btn-active">Students</button>
+          <button data-tab="curriculum" class="tab-btn tab-btn-inactive">Curriculum</button>
+          <button data-tab="sessions" class="tab-btn tab-btn-inactive">Session Logs</button>
+          <button data-tab="gradebook" class="tab-btn tab-btn-inactive">Gradebook</button>
+          <button data-tab="attendance" class="tab-btn tab-btn-inactive">Attendance</button>
         </div>
       </nav>
     </header>
@@ -151,7 +144,7 @@
       </section>
 
       <!-- Topics Section -->
-      <section id="topicsSection" data-section="topics" class="hidden space-y-8">
+      <section id="topicsSection" data-section="curriculum" class="hidden space-y-8">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h2 class="text-4xl font-black tracking-tight text-slate-900">Curriculum</h2>
@@ -295,7 +288,54 @@
           </div>
         </div>
       </section>
-    </main>
+
+        <!-- Gradebook Section -->
+        <section id="gradebookSection" data-section="gradebook" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Academic Gradebook</h2>
+              <p class="text-slate-500 font-bold mt-1">Summary of student performance across all subjects.</p>
+            </div>
+          </div>
+
+          <div id="gradebookContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Gradebook cards will be rendered here -->
+          </div>
+        </section>
+
+        <!-- Attendance Section -->
+        <section id="attendanceSection" data-section="attendance" class="hidden animate-fade-in">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Daily Attendance</h2>
+              <p class="text-slate-500 font-bold mt-1">Log and track student presence.</p>
+            </div>
+            <div class="flex gap-4">
+              <input type="date" id="attendanceDateFilter" class="input-field max-w-[200px]" />
+            </div>
+          </div>
+
+          <div class="glass-card rounded-3xl p-8 mb-8">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+              <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+              Mark Attendance
+            </h3>
+            <div id="attendanceLogger" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <!-- Checkboxes for marking attendance today -->
+            </div>
+            <div class="mt-8 flex justify-end">
+              <button id="saveAttendanceBtn" class="btn-primary">Save Attendance</button>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-3xl p-8">
+            <h3 class="text-xl font-bold mb-6">Attendance History (Last 30 Days)</h3>
+            <div id="attendanceHistoryTable" class="overflow-x-auto">
+              <!-- Attendance grid will be rendered here -->
+            </div>
+          </div>
+        </section>
+      </main>
   </div>
 
   <!-- Global Toasts -->

@@ -53,6 +53,7 @@ const state = {
   students: [],
   topics: [],
   sessions: [],
+  attendance: [],
   activeTab: 'students',
   editingStudentId: null,
   editingTopicId: null,
@@ -63,6 +64,7 @@ const state = {
 let unsubStudents = null;
 let unsubTopics = null;
 let unsubSessions = null;
+let unsubAttendance = null;
 let confirmResolver = null;
 
 /* ---------------------------------------------
@@ -122,6 +124,15 @@ const sessionNotes = document.getElementById('sessionNotes');
 const sessionSubmit = document.getElementById('sessionSubmit');
 const sessionNotice = document.getElementById('sessionNotice');
 const sessionHistory = document.getElementById('sessionHistory');
+
+// Gradebook
+const gradebookContent = document.getElementById('gradebookContent');
+
+// Attendance
+const attendanceLogger = document.getElementById('attendanceLogger');
+const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
+const attendanceDateFilter = document.getElementById('attendanceDateFilter');
+const attendanceHistoryTable = document.getElementById('attendanceHistoryTable');
 
 // Global
 const toastContainer = document.getElementById('toastContainer');
@@ -345,6 +356,125 @@ const renderSessions = () => {
   }).join('');
 };
 
+const renderGradebook = () => {
+  if (!state.students.length) {
+    gradebookContent.innerHTML = '<div class="col-span-full glass-card rounded-3xl p-12 text-center text-slate-400 font-bold italic">No students to grade yet.</div>';
+    return;
+  }
+
+  gradebookContent.innerHTML = state.students.map(student => {
+    const studentSessions = state.sessions.filter(s => s.studentId === student.id && s.mode === 'testing' && s.score !== null);
+    
+    // Group scores by subject
+    const subjectGrades = {};
+    studentSessions.forEach(s => {
+      const topic = state.topics.find(t => t.id === s.topicId);
+      if (topic) {
+        if (!subjectGrades[topic.subject]) subjectGrades[topic.subject] = [];
+        subjectGrades[topic.subject].push(s.score);
+      }
+    });
+
+    const summary = Object.entries(subjectGrades).map(([subject, scores]) => {
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      let color = 'text-emerald-600';
+      if (avg < 70) color = 'text-amber-600';
+      if (avg < 50) color = 'text-accent-600';
+      
+      return `
+        <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">${subject}</span>
+          <span class="text-sm font-black ${color}">${avg}%</span>
+        </div>
+      `;
+    }).join('');
+
+    const overallAvg = studentSessions.length 
+      ? Math.round(studentSessions.reduce((a, b) => a + b, 0) / studentSessions.length)
+      : null;
+
+    return `
+      <article class="glass-card rounded-3xl p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="h-12 w-12 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-black">
+            ${student.name.charAt(0)}
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900">${student.name}</h4>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${student.grade}</p>
+          </div>
+          ${overallAvg !== null ? `
+            <div class="ml-auto text-right">
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">GPA</p>
+              <p class="text-xl font-black text-primary-600">${overallAvg}%</p>
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="space-y-1">
+          ${summary || '<p class="text-xs text-slate-400 italic py-4">No test scores recorded yet.</p>'}
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-slate-100">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Assessments: ${studentSessions.length}</p>
+        </div>
+      </article>
+    `;
+  }).join('');
+};
+
+const renderAttendance = () => {
+  // Render Attendance Logger
+  attendanceLogger.innerHTML = state.students.map(s => `
+    <label class="flex items-center gap-3 p-4 glass-card rounded-2xl cursor-pointer hover:border-primary-200 transition-all">
+      <input type="checkbox" data-student-id="${s.id}" class="h-5 w-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+      <span class="text-sm font-bold text-slate-700">${s.name}</span>
+    </label>
+  `).join('') || '<p class="col-span-full text-center py-4 text-slate-400 italic">No students registered.</p>';
+
+  // Render Attendance History Table
+  if (!state.attendance.length) {
+    attendanceHistoryTable.innerHTML = '<p class="text-center py-12 text-slate-400 italic font-bold">No attendance logs found.</p>';
+    return;
+  }
+
+  // Get last 30 dates that have logs
+  const dates = [...new Set(state.attendance.map(a => a.date))].sort().reverse().slice(0, 30);
+  
+  let html = `
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr>
+          <th class="py-4 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Student</th>
+          ${dates.map(d => `<th class="py-4 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-center">${d.split('-').slice(1).join('/')}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  state.students.forEach(student => {
+    html += `
+      <tr class="hover:bg-slate-50/50">
+        <td class="py-4 px-4 text-sm font-bold text-slate-900 border-b border-slate-50">${student.name}</td>
+        ${dates.map(date => {
+          const log = state.attendance.find(a => a.date === date);
+          const present = log?.presentStudents?.includes(student.id);
+          return `
+            <td class="py-4 px-2 text-center border-b border-slate-50">
+              <div class="inline-flex h-6 w-6 items-center justify-center rounded-full ${present ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-300'}">
+                ${present ? '✓' : '×'}
+              </div>
+            </td>
+          `;
+        }).join('')}
+      </tr>
+    `;
+  });
+
+  html += '</tbody></table>';
+  attendanceHistoryTable.innerHTML = html;
+};
+
 /* ---------------------------------------------
    6. Event Listeners & Firebase Listeners
    --------------------------------------------- */
@@ -370,6 +500,13 @@ const startRealtimeListeners = () => {
   unsubSessions = onSnapshot(sesQ, snap => {
     state.sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSessions();
+    if (state.activeTab === 'gradebook') renderGradebook();
+  });
+
+  const attQ = query(collection(db, 'attendance'), orderBy('date', 'desc'), limit(100));
+  unsubAttendance = onSnapshot(attQ, snap => {
+    state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAttendance();
   });
 };
 
@@ -453,13 +590,55 @@ onAuthStateChanged(auth, user => {
     state.students = [];
     state.topics = [];
     state.sessions = [];
+    state.attendance = [];
+    if (unsubAttendance) { unsubAttendance(); unsubAttendance = null; }
   }
 });
 
 signOutBtn.addEventListener('click', () => signOut(auth));
 
 // Tab Switching
-tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveTab(btn.dataset.tab)));
+tabButtons.forEach(btn => btn.addEventListener('click', () => {
+  const tab = btn.dataset.tab;
+  setActiveTab(tab);
+  if (tab === 'gradebook') renderGradebook();
+  if (tab === 'attendance') renderAttendance();
+}));
+
+// Attendance Logging
+saveAttendanceBtn.addEventListener('click', async () => {
+  const date = attendanceDateFilter.value;
+  if (!date) {
+    showToast('Please select a date first', 'warn');
+    return;
+  }
+
+  const presentStudents = Array.from(attendanceLogger.querySelectorAll('input:checked')).map(i => i.dataset.studentId);
+  
+  try {
+    saveAttendanceBtn.disabled = true;
+    // Check if entry for this date already exists
+    const existing = state.attendance.find(a => a.date === date);
+    const payload = {
+      date,
+      presentStudents,
+      updatedAt: serverTimestamp(),
+      ownerId: state.user.uid
+    };
+
+    if (existing) {
+      await updateDoc(doc(db, 'attendance', existing.id), payload);
+      showToast('Attendance updated for ' + date, 'success');
+    } else {
+      await addDoc(collection(db, 'attendance'), payload);
+      showToast('Attendance logged for ' + date, 'success');
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    saveAttendanceBtn.disabled = false;
+  }
+});
 
 // Student Form
 studentForm.addEventListener('submit', async e => {
@@ -637,3 +816,4 @@ updateAuthUI();
 setActiveTab('students');
 topicDate.value = new Date().toISOString().split('T')[0];
 sessionDate.value = new Date().toISOString().split('T')[0];
+attendanceDateFilter.value = new Date().toISOString().split('T')[0];

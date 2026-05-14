@@ -25,7 +25,7 @@ import {
    1. Firebase Configuration
    --------------------------------------------- */
 const firebaseConfig = {
-  apiKey: "AIzaSyAQPhqlQiiskNcDogizohK7XcsC3VzErS4",
+  apiKey: "AIzaSyBLdB8_W98fFhD6Rksd4gkULPyatIKdIz4",
   authDomain: "sproque-27ce4.firebaseapp.com",
   projectId: "sproque-27ce4",
   storageBucket: "sproque-27ce4.firebasestorage.app",

@@ -163,6 +163,7 @@ const topicSubject = document.getElementById('topicSubject');
 const topicTitle = document.getElementById('topicTitle');
 const topicDescription = document.getElementById('topicDescription');
 const topicResources = document.getElementById('topicResources');
+const topicResourceLink = document.getElementById('topicResourceLink');
 const topicDate = document.getElementById('topicDate');
 const topicStudents = document.getElementById('topicStudents');
 const topicSubmit = document.getElementById('topicSubmit');
@@ -373,7 +374,14 @@ const renderTopics = () => {
             <div class="flex flex-wrap gap-2">${students || '<span class="text-slate-300 italic">None</span>'}</div>
           </div>
           
+          
           <div class="flex items-center gap-2 pt-4 border-t border-slate-100">
+            ${topic.resourceLink ? `
+              <a href="${topic.resourceLink}" target="_blank" class="flex-1 text-center py-2 bg-primary-100 text-primary-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-200 transition-all flex items-center justify-center gap-2">
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                View Resource
+              </a>
+            ` : ''}
             <button data-action="advance-topic" data-id="${topic.id}" class="btn-primary py-2 px-4 text-xs">Advance Status</button>
             <button data-action="edit-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">Edit</button>
             <button data-action="delete-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-accent-500 hover:text-accent-700 transition-colors">Delete</button>
@@ -1022,6 +1030,7 @@ topicForm.addEventListener('submit', async e => {
     resources,
     datePrepared: topicDate.value,
     assignedStudents: assigned,
+    resourceLink: topicResourceLink.value,
     updatedAt: serverTimestamp(),
     ownerId: state.user?.uid
   };
@@ -1113,18 +1122,30 @@ document.addEventListener('click', async e => {
       topicTitle.value = t.title;
       topicDescription.value = t.description;
       topicResources.value = (t.resources || []).join('\n');
+      topicResourceLink.value = t.resourceLink || '';
       topicDate.value = t.datePrepared;
       state.topicAssignedSet = new Set(t.assignedStudents || []);
       topicSubmit.textContent = 'Update Module';
       topicCancelBtn.classList.remove('hidden');
       updateFormSelects();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setActiveTab('curriculum');
     }
   }
 
   if (delBtn) {
     const id = delBtn.dataset.id;
-    const type = delBtn.dataset.action.includes('student') ? 'Student' : 'Topic';
+    const action = delBtn.dataset.action;
+
+    if (action === 'delete-announcement') {
+      if (await confirmAction('Delete this reminder?')) {
+        await deleteDoc(doc(db, 'announcements', id));
+        showToast('Reminder removed', 'success');
+      }
+      return;
+    }
+
+    const type = action.includes('student') ? 'Student' : 'Topic';
     const confirmed = await confirmAction(`Are you sure you want to remove this ${type}? This action cannot be undone.`);
     if (confirmed) {
       try {
@@ -1134,6 +1155,10 @@ document.addEventListener('click', async e => {
         showToast(err.message, 'error');
       }
     }
+  }
+
+  if (e.target.closest('[data-action="report-card"]')) {
+    generateReportCard(e.target.closest('[data-action="report-card"]').dataset.id);
   }
 
   if (advBtn) {

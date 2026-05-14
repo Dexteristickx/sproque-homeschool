@@ -38,6 +38,64 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Global Actions (Delegated)
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+
+  if (action === 'delete-announcement') {
+    if (await confirmAction('Delete this reminder?')) {
+      await deleteDoc(doc(db, 'announcements', id));
+      showToast('Reminder removed', 'success');
+    }
+  }
+
+  if (action === 'report-card') {
+    generateReportCard(id);
+  }
+
+  if (action === 'delete-student') {
+    if (await confirmAction('Delete this student and all their records?')) {
+      await deleteDoc(doc(db, 'students', id));
+      showToast('Student deleted', 'success');
+    }
+  }
+
+  if (action === 'edit-student') {
+    state.editingStudentId = id;
+    const s = state.students.find(x => x.id === id);
+    studentName.value = s.name;
+    studentAge.value = s.age;
+    studentGrade.value = s.grade;
+    studentSubmit.textContent = 'Update Student';
+    studentCancelBtn.classList.remove('hidden');
+    setActiveTab('students');
+  }
+
+  if (action === 'delete-topic') {
+    if (await confirmAction('Delete this topic?')) {
+      await deleteDoc(doc(db, 'topics', id));
+      showToast('Topic deleted', 'success');
+    }
+  }
+
+  if (action === 'edit-topic') {
+    state.editingTopicId = id;
+    const t = state.topics.find(x => x.id === id);
+    topicTitle.value = t.title;
+    topicSubject.value = t.subject;
+    topicDescription.value = t.description;
+    topicDate.value = t.datePrepared;
+    state.editingTopicStatus = t.status;
+    topicSubmit.textContent = 'Update Topic';
+    topicCancelBtn.classList.remove('hidden');
+    setActiveTab('curriculum');
+  }
+});
+
 /* ---------------------------------------------
    2. Application State
    --------------------------------------------- */
@@ -54,17 +112,20 @@ const state = {
   topics: [],
   sessions: [],
   attendance: [],
+  announcements: [],
   activeTab: 'students',
   editingStudentId: null,
   editingTopicId: null,
   editingTopicStatus: 'Prepared',
-  topicAssignedSet: new Set()
+  topicAssignedSet: new Set(),
+  charts: {}
 };
 
 let unsubStudents = null;
 let unsubTopics = null;
 let unsubSessions = null;
 let unsubAttendance = null;
+let unsubAnnouncements = null;
 let confirmResolver = null;
 
 /* ---------------------------------------------
@@ -133,6 +194,25 @@ const attendanceLogger = document.getElementById('attendanceLogger');
 const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
 const attendanceDateFilter = document.getElementById('attendanceDateFilter');
 const attendanceHistoryTable = document.getElementById('attendanceHistoryTable');
+
+// Announcements
+const announcementList = document.getElementById('announcementList');
+const announcementForm = document.getElementById('announcementForm');
+const announcementText = document.getElementById('announcementText');
+
+// Calendar
+const calendarGrid = document.getElementById('calendarGrid');
+
+// Analytics
+const masteryChartCtx = document.getElementById('masteryChart')?.getContext('2d');
+const engagementChartCtx = document.getElementById('engagementChart')?.getContext('2d');
+
+// Stats
+const statsTaught = document.getElementById('statsTaught');
+const statsTested = document.getElementById('statsTested');
+
+// Export
+const exportDataBtn = document.getElementById('exportDataBtn');
 
 // Global
 const toastContainer = document.getElementById('toastContainer');
@@ -415,12 +495,107 @@ const renderGradebook = () => {
           ${summary || '<p class="text-xs text-slate-400 italic py-4">No test scores recorded yet.</p>'}
         </div>
         
-        <div class="mt-6 pt-4 border-t border-slate-100">
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Assessments: ${studentSessions.length}</p>
+          <button data-action="report-card" data-id="${student.id}" class="text-[10px] font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1">
+            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+            Report Card
+          </button>
         </div>
       </article>
     `;
   }).join('');
+};
+
+const generateReportCard = (studentId) => {
+  const student = state.students.find(s => s.id === studentId);
+  if (!student) return;
+
+  const studentSessions = state.sessions.filter(s => s.studentId === student.id && s.mode === 'testing' && s.score !== null);
+  const subjectGrades = {};
+  studentSessions.forEach(s => {
+    const topic = state.topics.find(t => t.id === s.topicId);
+    if (topic) {
+      if (!subjectGrades[topic.subject]) subjectGrades[topic.subject] = [];
+      subjectGrades[topic.subject].push(s.score);
+    }
+  });
+
+  const overallAvg = studentSessions.length 
+    ? Math.round(studentSessions.reduce((a, b) => a + b, 0) / studentSessions.length)
+    : 'N/A';
+
+  const reportWindow = window.open('', '_blank');
+  reportWindow.document.write(`
+    <html>
+      <head>
+        <title>Report Card - ${student.name}</title>
+        <style>
+          body { font-family: 'Inter', sans-serif; padding: 40px; color: #1e293b; }
+          .header { text-align: center; margin-bottom: 40px; border-bottom: 4px solid #3b82f6; padding-bottom: 20px; }
+          .title { font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin: 0; }
+          .subtitle { font-size: 14px; font-weight: 700; color: #64748b; margin-top: 5px; }
+          .info-grid { display: grid; grid-cols: 2; gap: 20px; margin-bottom: 40px; }
+          .info-item { border: 1px solid #e2e8f0; padding: 15px; rounded: 10px; }
+          .label { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+          .value { font-size: 18px; font-weight: 700; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { text-align: left; background: #f8fafc; padding: 15px; font-size: 12px; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+          td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; font-weight: 600; }
+          .score { font-weight: 900; color: #3b82f6; }
+          .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #94a3b8; }
+          @media print { .no-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <p class="subtitle">Sproque Homeschool Organizer</p>
+          <h1 class="title">Official Progress Report</h1>
+        </div>
+        
+        <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+          <div style="flex: 1; border: 1px solid #e2e8f0; padding: 20px; border-radius: 15px;">
+            <div class="label">Student Name</div>
+            <div class="value">${student.name}</div>
+            <div class="label" style="margin-top: 15px;">Grade Level</div>
+            <div class="value">${student.grade}</div>
+          </div>
+          <div style="flex: 1; border: 1px solid #3b82f6; background: #eff6ff; padding: 20px; border-radius: 15px; text-align: center;">
+            <div class="label">Cumulative GPA</div>
+            <div class="value" style="font-size: 40px; color: #2563eb;">${overallAvg}%</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Assessments</th>
+              <th>Average Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(subjectGrades).map(([subject, scores]) => `
+              <tr>
+                <td>${subject}</td>
+                <td>${scores.length}</td>
+                <td class="score">${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <p>Generated on ${new Date().toLocaleDateString()} • Authorized Educator: ${state.user.email}</p>
+        </div>
+
+        <div class="no-print" style="margin-top: 40px; text-align: center;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Print Report Card</button>
+        </div>
+      </body>
+    </html>
+  `);
+  reportWindow.document.close();
 };
 
 const renderAttendance = () => {
@@ -475,6 +650,140 @@ const renderAttendance = () => {
   attendanceHistoryTable.innerHTML = html;
 };
 
+const renderStats = () => {
+  const taught = state.topics.filter(t => t.status === 'Taught').length;
+  const tested = state.topics.filter(t => t.status === 'Tested').length;
+  if (statsTaught) statsTaught.textContent = taught;
+  if (statsTested) statsTested.textContent = tested;
+  if (studentCountBadge) studentCountBadge.textContent = `${state.students.length} Students Registered`;
+};
+
+const renderAnnouncements = () => {
+  if (!state.announcements.length) {
+    announcementList.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">No active reminders.</p>';
+    return;
+  }
+
+  announcementList.innerHTML = state.announcements.map(a => `
+    <div class="p-4 bg-white rounded-2xl shadow-sm border border-primary-100 flex items-start justify-between group">
+      <p class="text-sm font-medium text-slate-700">${a.text}</p>
+      <button data-action="delete-announcement" data-id="${a.id}" class="text-slate-300 hover:text-accent-500 opacity-0 group-hover:opacity-100 transition-all">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+  `).join('');
+};
+
+const renderAnalytics = () => {
+  if (state.activeTab !== 'analytics') return;
+  if (!masteryChartCtx || !engagementChartCtx) return;
+
+  // Cleanup old charts
+  Object.values(state.charts).forEach(c => { if(c && c.destroy) c.destroy(); });
+
+  // Mastery Chart (Radar/Polar)
+  const subjects = [...new Set(state.topics.map(t => t.subject))];
+  const masteryData = subjects.map(s => {
+    const total = state.topics.filter(t => t.subject === s).length;
+    const completed = state.topics.filter(t => t.subject === s && t.status === 'Tested').length;
+    return (completed / total) * 100;
+  });
+
+  state.charts.mastery = new Chart(masteryChartCtx, {
+    type: 'polarArea',
+    data: {
+      labels: subjects,
+      datasets: [{
+        label: 'Mastery %',
+        data: masteryData,
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.5)',
+          'rgba(236, 72, 153, 0.5)',
+          'rgba(16, 185, 129, 0.5)',
+          'rgba(245, 158, 11, 0.5)',
+          'rgba(139, 92, 246, 0.5)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // Engagement Chart (Doughnut)
+  const statusCounts = ['Prepared', 'Taught', 'Tested'].map(s => state.topics.filter(t => t.status === s).length);
+  state.charts.engagement = new Chart(engagementChartCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Prepared', 'Taught', 'Tested'],
+      datasets: [{
+        data: statusCounts,
+        backgroundColor: ['#f1f5f9', '#dbeafe', '#fce7f3'],
+        borderColor: ['#e2e8f0', '#bfdbfe', '#fbcfe8'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '70%',
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+};
+
+const renderCalendar = () => {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  
+  calendarGrid.innerHTML = `
+    <div class="grid grid-cols-7 gap-4">
+      ${days.map(d => `
+        <div class="space-y-4">
+          <div class="text-center py-2 bg-slate-100 rounded-xl">
+            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">${d}</span>
+          </div>
+          <div class="space-y-3 min-h-[400px]">
+            ${state.topics.filter(t => {
+              const dayOfWeek = new Date(t.datePrepared).toLocaleDateString('en-US', { weekday: 'long' });
+              return dayOfWeek === d;
+            }).map(t => `
+              <div class="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer" data-action="edit-topic" data-id="${t.id}">
+                <p class="text-[8px] font-black uppercase tracking-widest text-primary-500 mb-1">${t.subject}</p>
+                <p class="text-xs font-bold text-slate-900 leading-tight">${t.title}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+};
+
+const exportToCSV = () => {
+  const headers = ['Type', 'Name/Title', 'Subject', 'Date', 'Status/Score', 'Notes'];
+  const rows = [];
+
+  state.students.forEach(s => rows.push(['Student', s.name, '', '', s.grade, '']));
+  state.topics.forEach(t => rows.push(['Topic', t.title, t.subject, t.datePrepared, t.status, t.description]));
+  state.sessions.forEach(s => {
+    const student = state.students.find(st => st.id === s.studentId);
+    const topic = state.topics.find(t => t.id === s.topicId);
+    rows.push(['Session', student?.name || 'Unknown', topic?.subject || '', s.sessionDate, s.score || s.mode, s.notes]);
+  });
+
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + [headers, ...rows].map(e => e.join(",")).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `sproque_data_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 /* ---------------------------------------------
    6. Event Listeners & Firebase Listeners
    --------------------------------------------- */
@@ -508,6 +817,14 @@ const startRealtimeListeners = () => {
     state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderAttendance();
   });
+
+  const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(10));
+  unsubAnnouncements = onSnapshot(annQ, snap => {
+    state.announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAnnouncements();
+  });
+  
+  renderStats();
 };
 
 const updateFormSelects = () => {
@@ -591,7 +908,9 @@ onAuthStateChanged(auth, user => {
     state.topics = [];
     state.sessions = [];
     state.attendance = [];
+    state.announcements = [];
     if (unsubAttendance) { unsubAttendance(); unsubAttendance = null; }
+    if (unsubAnnouncements) { unsubAnnouncements(); unsubAnnouncements = null; }
   }
 });
 
@@ -603,7 +922,29 @@ tabButtons.forEach(btn => btn.addEventListener('click', () => {
   setActiveTab(tab);
   if (tab === 'gradebook') renderGradebook();
   if (tab === 'attendance') renderAttendance();
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'analytics') renderAnalytics();
 }));
+
+// Announcements
+announcementForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const text = announcementText.value;
+  try {
+    await addDoc(collection(db, 'announcements'), {
+      text,
+      createdAt: serverTimestamp(),
+      ownerId: state.user.uid
+    });
+    announcementForm.reset();
+    showToast('Note added', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+// Export
+exportDataBtn.addEventListener('click', exportToCSV);
 
 // Attendance Logging
 saveAttendanceBtn.addEventListener('click', async () => {

@@ -82,10 +82,12 @@
       <!-- Navigation Tabs -->
       <nav class="mx-auto max-w-7xl px-6 pb-2">
         <div class="flex flex-wrap gap-2 overflow-x-auto pb-2 scroll-shadow no-scrollbar">
-          <button data-tab="students" class="tab-btn tab-btn-active">Students</button>
+          <button data-tab="students" class="tab-btn tab-btn-active">Dashboard</button>
           <button data-tab="curriculum" class="tab-btn tab-btn-inactive">Curriculum</button>
           <button data-tab="sessions" class="tab-btn tab-btn-inactive">Session Logs</button>
+          <button data-tab="calendar" class="tab-btn tab-btn-inactive">Schedule</button>
           <button data-tab="gradebook" class="tab-btn tab-btn-inactive">Gradebook</button>
+          <button data-tab="analytics" class="tab-btn tab-btn-inactive">Analytics</button>
           <button data-tab="attendance" class="tab-btn tab-btn-inactive">Attendance</button>
         </div>
       </nav>
@@ -94,54 +96,80 @@
     <!-- Main Content Area -->
     <main class="mx-auto max-w-7xl px-6 py-8 animate-fade-in">
       
-      <!-- Students Section -->
-      <section id="studentsSection" data-section="students" class="hidden space-y-8">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 class="text-4xl font-black tracking-tight text-slate-900">Student Roster</h2>
-            <p class="mt-2 text-lg text-slate-500 font-medium">Manage learners and their academic progress.</p>
-          </div>
-          <div id="studentCountBadge" class="bg-primary-100 text-primary-700 px-6 py-2 rounded-2xl font-bold text-sm shadow-sm border border-primary-200">
-            0 Students Registered
-          </div>
-        </div>
+        <section id="studentsSection" data-section="students" class="animate-fade-in space-y-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Students List -->
+            <div class="lg:col-span-2 space-y-8">
+              <div class="flex items-end justify-between">
+                <div>
+                  <h2 class="text-4xl font-black tracking-tight text-slate-900">Student Roster</h2>
+                  <p id="studentCountBadge" class="text-slate-500 font-bold mt-1">Loading students...</p>
+                </div>
+                <button id="exportDataBtn" class="px-4 py-2 text-xs font-black uppercase tracking-widest bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Export Data
+                </button>
+              </div>
 
-        <div class="grid gap-8 lg:grid-cols-12">
-          <div class="lg:col-span-4 space-y-6">
-            <article class="glass-card rounded-3xl p-6">
-              <h3 class="text-xl font-bold text-slate-900 mb-1">New Enrollment</h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">Add a new student to the homeschool system.</p>
-              
-              <form id="studentForm" class="space-y-5">
-                <div class="space-y-1.5">
-                  <label for="studentName" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Full Name</label>
-                  <input id="studentName" type="text" required placeholder="e.g. Alex Sproque" class="input-field" />
-                </div>
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div class="space-y-1.5">
-                    <label for="studentAge" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Age</label>
-                    <input id="studentAge" type="number" min="0" required placeholder="0" class="input-field" />
+              <!-- Quick Student Form -->
+              <div class="glass-card rounded-3xl p-6">
+                <form id="studentForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Full Name</label>
+                    <input type="text" id="studentName" class="input-field" placeholder="John Doe" required>
                   </div>
-                  <div class="space-y-1.5">
-                    <label for="studentGrade" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Grade</label>
-                    <input id="studentGrade" type="text" required placeholder="e.g. Year 5" class="input-field" />
+                  <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Age</label>
+                    <input type="number" id="studentAge" class="input-field" placeholder="8" required>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Grade</label>
+                    <input type="text" id="studentGrade" class="input-field" placeholder="Grade 3" required>
+                  </div>
+                  <div class="md:col-span-4 flex gap-4 mt-2">
+                    <button type="submit" id="studentSubmit" class="btn-primary flex-1">Add Student</button>
+                    <button type="button" id="studentCancelBtn" class="btn-ghost hidden">Cancel</button>
+                  </div>
+                </form>
+              </div>
+
+              <div id="studentList" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Students rendered here -->
+              </div>
+            </div>
+
+            <!-- Right Column: Notice Board & Stats -->
+            <div class="space-y-8">
+              <div class="glass-card rounded-3xl p-6 border-primary-100 bg-primary-50/30">
+                <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                  <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.167H3.38a1.345 1.345 0 01-1.35-1.332V8.95c0-.737.608-1.332 1.35-1.332h.93l2.147-6.167a1.76 1.76 0 013.417.592v3.839z" /></svg>
+                  Notice Board
+                </h3>
+                <div id="announcementList" class="space-y-4">
+                  <!-- Announcements rendered here -->
+                </div>
+                <form id="announcementForm" class="mt-6 pt-6 border-t border-primary-100 space-y-4">
+                  <input type="text" id="announcementText" class="input-field bg-white" placeholder="Add a new reminder..." required>
+                  <button type="submit" class="w-full btn-primary text-xs py-2">Post Note</button>
+                </form>
+              </div>
+
+              <div class="glass-card rounded-3xl p-6">
+                <h3 class="text-xl font-black text-slate-900 mb-4">Quick Stats</h3>
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500">Modules Taught</span>
+                    <span id="statsTaught" class="text-lg font-black text-primary-600">0</span>
+                  </div>
+                  <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500">Assessments Done</span>
+                    <span id="statsTested" class="text-lg font-black text-accent-600">0</span>
                   </div>
                 </div>
-                <div class="flex gap-3 pt-2">
-                  <button id="studentSubmit" type="submit" class="btn-primary flex-1">Add Student</button>
-                  <button id="studentCancelBtn" type="button" class="hidden px-4 py-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">Cancel</button>
-                </div>
-              </form>
-            </article>
-          </div>
-          
-          <div class="lg:col-span-8">
-            <div id="studentList" class="grid gap-4 sm:grid-cols-2">
-              <!-- Student cards will be injected here -->
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       <!-- Topics Section -->
       <section id="topicsSection" data-section="curriculum" class="hidden space-y-8">
@@ -290,7 +318,7 @@
       </section>
 
         <!-- Gradebook Section -->
-        <section id="gradebookSection" data-section="gradebook" class="hidden animate-fade-in">
+        <section id="gradebookSection" data-section="gradebook" class="hidden animate-fade-in space-y-8">
           <div class="flex items-center justify-between mb-8">
             <div>
               <h2 class="text-3xl font-black text-slate-900 tracking-tight">Academic Gradebook</h2>
@@ -300,6 +328,43 @@
 
           <div id="gradebookContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- Gradebook cards will be rendered here -->
+          </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analyticsSection" data-section="analytics" class="hidden animate-fade-in space-y-8">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Learning Analytics</h2>
+              <p class="text-slate-500 font-bold mt-1">Visual insights into curriculum mastery and progress.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass-card rounded-3xl p-8">
+              <h3 class="text-xl font-bold mb-6">Subject Mastery</h3>
+              <canvas id="masteryChart"></canvas>
+            </div>
+            <div class="glass-card rounded-3xl p-8">
+              <h3 class="text-xl font-bold mb-6">Engagement Overview</h3>
+              <canvas id="engagementChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendar Section -->
+        <section id="calendarSection" data-section="calendar" class="hidden animate-fade-in space-y-8">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Academic Calendar</h2>
+              <p class="text-slate-500 font-bold mt-1">Weekly view of scheduled curriculum topics.</p>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-3xl p-4 overflow-x-auto">
+            <div id="calendarGrid" class="min-w-[800px]">
+              <!-- Weekly calendar grid rendered here -->
+            </div>
           </div>
         </section>
 

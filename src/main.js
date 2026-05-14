@@ -25,12 +25,13 @@ import {
    1. Firebase Configuration
    --------------------------------------------- */
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+  apiKey: "AIzaSyAQPhqlQiiskNcDogizohK7XcsC3VzErS4",
+  authDomain: "sproque-27ce4.firebaseapp.com",
+  projectId: "sproque-27ce4",
+  storageBucket: "sproque-27ce4.firebasestorage.app",
+  messagingSenderId: "305251128016",
+  appId: "1:305251128016:web:a21e63579b0b31ea8e84d5",
+  measurementId: "G-G711MMWPFH"
 };
 
 const app = initializeApp(firebaseConfig);

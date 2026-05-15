@@ -409,20 +409,20 @@ const renderStudents = () => {
             </button>
           </div>
         </div>
-        <h4 class="font-bold text-slate-900">${student.name}</h4>
-        <div class="mt-1 flex items-center gap-2 text-xs font-bold text-slate-400">
-          <span class="px-2 py-0.5 rounded bg-slate-100 uppercase tracking-widest">${student.grade}</span>
+        <h4 class="font-bold text-white">${student.name}</h4>
+        <div class="mt-1 flex items-center gap-2 text-xs font-bold text-slate-500">
+          <span class="px-2 py-0.5 rounded bg-white/5 uppercase tracking-widest text-slate-400">${student.grade}</span>
           <span>•</span>
           <span>Age ${student.age}</span>
         </div>
         
         <div class="mt-4">
-          <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">
+          <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">
             <span>Milestone Progress</span>
             <span>${progress}%</span>
           </div>
-          <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-accent-500 rounded-full transition-all duration-1000" style="width: ${progress}%"></div>
+          <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+            <div class="h-full bg-amber-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(245,158,11,0.3)]" style="width: ${progress}%"></div>
           </div>
         </div>
       </article>
@@ -458,17 +458,17 @@ const renderTopics = () => {
       <article class="glass-card rounded-3xl p-6 hover:shadow-2xl transition-all duration-300" data-topic="${topic.id}">
         <div class="flex items-start justify-between gap-4 mb-4">
           <div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-primary-600">${topic.subject}</span>
-            <h4 class="text-xl font-bold text-slate-900 mt-1">${topic.title}</h4>
+            <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">${topic.subject}</span>
+            <h4 class="text-xl font-bold text-white mt-1">${topic.title}</h4>
           </div>
-          <span class="px-4 py-1.5 rounded-xl text-xs font-bold border ${STATUS_STYLES[topic.status] || STATUS_STYLES.Prepared}">
+          <span class="px-4 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-white/5 text-slate-300">
             ${topic.status || 'Prepared'}
           </span>
         </div>
         
-        <p class="text-sm text-slate-500 font-medium leading-relaxed mb-4">${topic.description}</p>
+        <p class="text-sm text-slate-400 font-medium leading-relaxed mb-4">${topic.description}</p>
         
-        <div class="flex flex-wrap gap-4 text-xs font-bold text-slate-400 mb-6">
+        <div class="flex flex-wrap gap-4 text-xs font-bold text-slate-500 mb-6">
           <div class="flex items-center gap-2">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             ${formatDate(topic.datePrepared)}
@@ -477,21 +477,20 @@ const renderTopics = () => {
 
         <div class="space-y-4">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Assigned Students</p>
-            <div class="flex flex-wrap gap-2">${students || '<span class="text-slate-300 italic">None</span>'}</div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Assigned Students</p>
+            <div class="flex flex-wrap gap-2">${students || '<span class="text-slate-600 italic">None</span>'}</div>
           </div>
           
-          
-          <div class="flex items-center gap-2 pt-4 border-t border-slate-100">
+          <div class="flex items-center gap-2 pt-4 border-t border-white/5">
             ${topic.resourceLink ? `
-              <a href="${topic.resourceLink}" target="_blank" class="flex-1 text-center py-2 bg-primary-100 text-primary-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-200 transition-all flex items-center justify-center gap-2">
+              <a href="${topic.resourceLink}" target="_blank" class="flex-1 text-center py-2 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600/20 transition-all flex items-center justify-center gap-2">
                 <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 View Resource
               </a>
             ` : ''}
-            <button data-action="advance-topic" data-id="${topic.id}" class="btn-primary py-2 px-4 text-xs">Advance Status</button>
-            <button data-action="edit-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">Edit</button>
-            <button data-action="delete-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-accent-500 hover:text-accent-700 transition-colors">Delete</button>
+            <button data-action="advance-topic" data-id="${topic.id}" class="btn-primary py-2 px-4 text-xs">Advance</button>
+            <button data-action="edit-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors">Edit</button>
+            <button data-action="delete-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-amber-500 hover:text-amber-400 transition-colors">Delete</button>
           </div>
         </div>
       </article>

@@ -255,10 +255,10 @@ const closeQuizModal = document.getElementById('closeQuizModal');
 const showToast = (message, variant = 'info') => {
   const toast = document.createElement('div');
   const variants = {
-    info: 'bg-primary-600 text-white',
+    info: 'bg-emerald-600/90 backdrop-blur-xl text-white border border-white/10',
     success: 'bg-emerald-600 text-white',
-    error: 'bg-accent-600 text-white',
-    warn: 'bg-amber-500 text-slate-900'
+    error: 'bg-amber-600 text-white',
+    warn: 'bg-amber-500 text-white'
   };
   
   toast.className = `px-6 py-4 rounded-2xl shadow-2xl font-bold text-sm animate-fade-in ${variants[variant] || variants.info}`;
@@ -513,7 +513,7 @@ const renderAgenda = () => {
         </div>
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-accent-500">${t.subject}</p>
-          <p class="text-sm font-bold text-slate-900">${t.title}</p>
+          <p class="text-sm font-bold text-white">${t.title}</p>
         </div>
       </div>
       <div class="px-3 py-1 rounded-lg bg-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -535,7 +535,7 @@ const renderLibrary = () => {
     <article class="glass-card rounded-2xl p-6 hover:border-primary-200 transition-all group">
       <div class="flex items-center gap-3 mb-4">
         <span class="px-2 py-1 rounded bg-primary-50 text-[8px] font-black uppercase tracking-widest text-primary-600">${t.subject}</span>
-        <h4 class="font-bold text-slate-900 truncate">${t.title}</h4>
+        <h4 class="font-bold text-white truncate">${t.title}</h4>
       </div>
       ${t.resourceLink ? `
         <a href="${t.resourceLink}" target="_blank" class="block w-full text-center py-3 bg-slate-50 hover:bg-primary-50 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-primary-600 rounded-xl transition-all mb-2 border border-slate-100">
@@ -562,7 +562,7 @@ const renderQuizzes = () => {
         <div class="flex items-start justify-between mb-4">
           <div>
             <p class="text-[10px] font-black uppercase tracking-widest text-accent-600">${topic?.subject || 'Misc'}</p>
-            <h4 class="text-lg font-bold text-slate-900 mt-1">${topic?.title || 'Untitled Quiz'}</h4>
+            <h4 class="text-lg font-bold text-white mt-1">${topic?.title || 'Untitled Quiz'}</h4>
           </div>
           <button data-action="delete-quiz" data-id="${q.id}" class="text-slate-300 hover:text-accent-600 transition-colors opacity-0 group-hover:opacity-100 educator-only">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -596,7 +596,7 @@ const renderSessions = () => {
               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             </div>
             <div>
-              <p class="text-sm font-bold text-slate-900">${student?.name || 'Unknown Student'}</p>
+              <p class="text-sm font-bold text-white">${student?.name || 'Unknown Student'}</p>
               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${topic?.title || 'Unknown Topic'}</p>
             </div>
           </div>
@@ -607,10 +607,10 @@ const renderSessions = () => {
         
         <div class="grid grid-cols-2 gap-4 mb-3">
           <div class="text-[10px] font-bold text-slate-400">
-            DATE: <span class="text-slate-900">${formatDate(session.sessionDate)}</span>
+            DATE: <span class="text-white">${formatDate(session.sessionDate)}</span>
           </div>
           <div class="text-[10px] font-bold text-slate-400">
-            DURATION: <span class="text-slate-900">${session.duration}m</span>
+            DURATION: <span class="text-white">${session.duration}m</span>
           </div>
         </div>
 
@@ -677,7 +677,7 @@ const renderGradebook = () => {
             </div>
           `}
           <div>
-            <h4 class="font-bold text-slate-900">${student.name}</h4>
+            <h4 class="font-bold text-white">${student.name}</h4>
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${student.grade}</p>
           </div>
           ${overallAvg !== null ? `
@@ -827,7 +827,7 @@ const renderAttendance = () => {
   state.students.forEach(student => {
     html += `
       <tr class="hover:bg-slate-50/50">
-        <td class="py-4 px-4 text-sm font-bold text-slate-900 border-b border-slate-50">${student.name}</td>
+        <td class="py-4 px-4 text-sm font-bold text-white border-b border-slate-50">${student.name}</td>
         ${dates.map(date => {
           const log = state.attendance.find(a => a.date === date);
           const present = log?.presentStudents?.includes(student.id);
@@ -947,7 +947,7 @@ const renderCalendar = () => {
             }).map(t => `
               <div class="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer" data-action="edit-topic" data-id="${t.id}">
                 <p class="text-[8px] font-black uppercase tracking-widest text-primary-500 mb-1">${t.subject}</p>
-                <p class="text-xs font-bold text-slate-900 leading-tight">${t.title}</p>
+                <p class="text-xs font-bold text-white leading-tight">${t.title}</p>
               </div>
             `).join('')}
           </div>
@@ -1015,9 +1015,9 @@ const updateFormSelects = () => {
 
   // Checkboxes for topic assignment
   topicStudents.innerHTML = state.students.map(s => `
-    <label class="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-slate-100">
-      <input type="checkbox" name="topicStudent" value="${s.id}" class="rounded text-primary-600 focus:ring-primary-500" ${state.topicAssignedSet.has(s.id) ? 'checked' : ''}>
-      <span class="text-xs font-bold text-slate-600">${s.name}</span>
+    <label class="flex items-center gap-2 p-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-white/5">
+      <input type="checkbox" name="topicStudent" value="${s.id}" class="rounded text-emerald-600 focus:ring-emerald-500 bg-white/5 border-white/10" ${state.topicAssignedSet.has(s.id) ? 'checked' : ''}>
+      <span class="text-xs font-bold text-slate-300">${s.name}</span>
     </label>
   `).join('') || '<p class="text-xs text-slate-400 italic col-span-2 py-2">No students registered yet.</p>';
 };
@@ -1037,8 +1037,8 @@ const updateFilters = () => {
 let authMode = 'login';
 const updateAuthUI = () => {
   const isLogin = authMode === 'login';
-  document.getElementById('loginToggle').className = `flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${isLogin ? 'bg-white shadow-sm text-primary-600' : 'text-slate-400 hover:text-slate-600'}`;
-  document.getElementById('registerToggle').className = `flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${!isLogin ? 'bg-white shadow-sm text-primary-600' : 'text-slate-400 hover:text-slate-600'}`;
+  document.getElementById('loginToggle').className = `flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${isLogin ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'}`;
+  document.getElementById('registerToggle').className = `flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${!isLogin ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'}`;
   authSubmit.textContent = isLogin ? 'Sign In' : 'Create Account';
   authError.classList.add('hidden');
 };
@@ -1227,7 +1227,7 @@ const takeQuiz = (quizId) => {
   quizTitle.textContent = topic?.title || 'Quiz';
   quizActiveContent.innerHTML = activeQuiz.questions.map((q, i) => `
     <div class="space-y-4">
-      <p class="font-bold text-slate-900">${i + 1}. ${q.text}</p>
+      <p class="font-bold text-white">${i + 1}. ${q.text}</p>
       <div class="grid grid-cols-2 gap-4">
         <button onclick="window.selectQuizAnswer(${i}, 'A')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-A">
           <span class="text-primary-600 mr-2">A</span> ${q.optA}

@@ -73,14 +73,14 @@
           </div>
           <div>
             <h1 class="text-2xl font-black tracking-tight text-white" style="font-family: 'Playfair Display', serif;">Sproque <span class="text-emerald-500">Curriculum</span></h1>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Integrated Learning Hub</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Integrated Learning Hub</p>
           </div>
         </div>
         
         <div class="flex items-center gap-4">
           <div class="hidden md:flex flex-col items-end mr-2">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Authenticated as</p>
-            <p id="userEmail" class="text-sm font-bold text-slate-700"></p>
+            <p id="userEmail" class="text-sm font-bold text-white"></p>
           </div>
           <div class="flex gap-2">
             <button id="darkModeToggle" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors">
@@ -268,7 +268,7 @@
                 </div>
                 <div class="flex gap-3 pt-2">
                   <button id="topicSubmit" type="submit" class="btn-primary flex-1">Save Module</button>
-                  <button id="topicCancelBtn" type="button" class="hidden px-4 py-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">Cancel</button>
+                  <button id="topicCancelBtn" type="button" class="hidden px-4 py-2 text-slate-400 font-bold hover:text-white transition-colors">Cancel</button>
                 </div>
               </form>
             </article>
@@ -301,16 +301,16 @@
       <section id="sessionsSection" data-section="sessions" class="hidden space-y-8">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Session Logs</h2>
-            <p class="mt-2 text-lg text-slate-500 font-medium">Record teaching sessions and assessment results.</p>
+            <h2 class="text-4xl font-black tracking-tight text-white" style="font-family: 'Playfair Display', serif;">Session Logs</h2>
+            <p class="mt-2 text-lg text-slate-400 font-medium">Record teaching sessions and assessment results.</p>
           </div>
         </div>
 
         <div class="grid gap-8 lg:grid-cols-12">
           <div class="lg:col-span-4">
             <article class="glass-card rounded-3xl p-6 sticky top-32">
-              <h3 class="text-xl font-bold text-slate-900 mb-1">New Session</h3>
-              <p class="text-sm text-slate-500 mb-6 font-medium">Log learner engagement and progress.</p>
+              <h3 class="text-xl font-bold text-white mb-1">New Session</h3>
+              <p class="text-sm text-slate-400 mb-6 font-medium">Log learner engagement and progress.</p>
               
               <form id="sessionForm" class="space-y-5">
                 <div class="space-y-1.5">
@@ -369,8 +369,8 @@
         <section id="gradebookSection" data-section="gradebook" class="hidden animate-fade-in space-y-8">
           <div class="flex items-center justify-between mb-8">
             <div>
-              <h2 class="text-3xl font-black text-slate-900 tracking-tight" style="font-family: 'Playfair Display', serif;">Academic Gradebook</h2>
-              <p class="text-slate-500 font-bold mt-1">Summary of student performance across all subjects.</p>
+              <h2 class="text-3xl font-black text-white tracking-tight" style="font-family: 'Playfair Display', serif;">Academic Gradebook</h2>
+              <p class="text-slate-400 font-bold mt-1">Summary of student performance across all subjects.</p>
             </div>
           </div>
 
@@ -383,8 +383,8 @@
         <section id="analyticsSection" data-section="analytics" class="hidden animate-fade-in space-y-8">
           <div class="flex items-center justify-between mb-8">
             <div>
-              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Learning Analytics</h2>
-              <p class="text-slate-500 font-bold mt-1">Visual insights into curriculum mastery and progress.</p>
+              <h2 class="text-3xl font-black text-white tracking-tight">Learning Analytics</h2>
+              <p class="text-slate-400 font-bold mt-1">Visual insights into curriculum mastery and progress.</p>
             </div>
           </div>
 
@@ -404,8 +404,8 @@
         <section id="calendarSection" data-section="calendar" class="hidden animate-fade-in space-y-8">
           <div class="flex items-center justify-between mb-8">
             <div>
-              <h2 class="text-3xl font-black text-slate-900 tracking-tight" style="font-family: 'Playfair Display', serif;">Academic Calendar</h2>
-              <p class="text-slate-500 font-bold mt-1">Weekly view of scheduled curriculum topics.</p>
+              <h2 class="text-3xl font-black text-white tracking-tight" style="font-family: 'Playfair Display', serif;">Academic Calendar</h2>
+              <p class="text-slate-400 font-bold mt-1">Weekly view of scheduled curriculum topics.</p>
             </div>
           </div>
 
@@ -420,8 +420,8 @@
         <section id="attendanceSection" data-section="attendance" class="hidden animate-fade-in">
           <div class="flex items-center justify-between mb-8">
             <div>
-              <h2 class="text-3xl font-black text-slate-900 tracking-tight">Daily Attendance</h2>
-              <p class="text-slate-500 font-bold mt-1">Log and track student presence.</p>
+              <h2 class="text-3xl font-black text-white tracking-tight">Daily Attendance</h2>
+              <p class="text-slate-400 font-bold mt-1">Log and track student presence.</p>
             </div>
             <div class="flex gap-4">
               <input type="date" id="attendanceDateFilter" class="input-field max-w-[200px]" />
@@ -452,8 +452,8 @@
         <section id="librarySection" data-section="library" class="hidden animate-fade-in space-y-8">
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Resource Vault</h2>
-              <p class="mt-2 text-lg text-slate-500 font-medium">All curriculum links and materials in one place.</p>
+              <h2 class="text-4xl font-black tracking-tight text-white" style="font-family: 'Playfair Display', serif;">Resource Vault</h2>
+              <p class="mt-2 text-lg text-slate-400 font-medium">All curriculum links and materials in one place.</p>
             </div>
           </div>
           <div id="libraryContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -465,8 +465,8 @@
         <section id="quizzesSection" data-section="quizzes" class="hidden animate-fade-in space-y-8">
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Interactive Quizzes</h2>
-              <p class="mt-2 text-lg text-slate-500 font-medium">Create and manage topic assessments.</p>
+              <h2 class="text-4xl font-black tracking-tight text-white" style="font-family: 'Playfair Display', serif;">Interactive Quizzes</h2>
+              <p class="mt-2 text-lg text-slate-400 font-medium">Create and manage topic assessments.</p>
             </div>
             <button id="addQuizBtn" class="btn-primary">Create New Quiz</button>
           </div>

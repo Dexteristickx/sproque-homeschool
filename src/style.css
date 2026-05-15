@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   /* Crystal Executive Palette */
@@ -12,10 +10,20 @@
   --slate-950: 2, 6, 23;
 }
 
+@theme {
+  --font-sans: "Inter", "system-ui", "sans-serif";
+  --font-serif: "Playfair Display", "serif";
+  
+  --color-primary-600: rgb(16 185 129);
+  --color-primary-500: rgb(16 185 129 / 0.8);
+  --color-accent-600: rgb(217 119 6);
+  --color-accent-500: rgb(217 119 6 / 0.8);
+}
+
 @layer base {
   body {
-    @apply antialiased text-slate-900 bg-slate-950;
-    font-family: 'Inter', sans-serif;
+    @apply antialiased bg-[#020617] text-[#f8fafc];
+    font-family: var(--font-sans);
   }
 }
 
@@ -105,9 +113,6 @@
 body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark label {
   @apply text-white;
 }
-
-body.dark .text-slate-900 { @apply text-slate-100; }
-body.dark .text-slate-700 { @apply text-slate-300; }
 
 /* Student Mode Hiding */
 body.student-mode [data-action="edit-student"],

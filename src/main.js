@@ -124,11 +124,6 @@ const state = {
   charts: {}
 };
 
-let unsubStudents = null;
-let unsubTopics = null;
-let unsubSessions = null;
-let unsubAttendance = null;
-let unsubAnnouncements = null;
 let confirmResolver = null;
 
 /* ---------------------------------------------
@@ -989,46 +984,6 @@ const exportToCSV = () => {
 /* ---------------------------------------------
    6. Event Listeners & Firebase Listeners
    --------------------------------------------- */
-const startRealtimeListeners = () => {
-  if (unsubStudents) return;
-
-  const stuQ = query(collection(db, 'students'), orderBy('name'));
-  unsubStudents = onSnapshot(stuQ, snap => {
-    state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderStudents();
-    updateFormSelects();
-  });
-
-  const topQ = query(collection(db, 'topics'), orderBy('updatedAt', 'desc'));
-  unsubTopics = onSnapshot(topQ, snap => {
-    state.topics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderTopics();
-    updateFormSelects();
-    updateFilters();
-  });
-
-  const sesQ = query(collection(db, 'sessions'), orderBy('loggedAt', 'desc'), limit(50));
-  unsubSessions = onSnapshot(sesQ, snap => {
-    state.sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderSessions();
-    if (state.activeTab === 'gradebook') renderGradebook();
-  });
-
-  const attQ = query(collection(db, 'attendance'), orderBy('date', 'desc'), limit(100));
-  unsubAttendance = onSnapshot(attQ, snap => {
-    state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderAttendance();
-  });
-
-  const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(10));
-  unsubAnnouncements = onSnapshot(annQ, snap => {
-    state.announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderAnnouncements();
-  });
-  
-  renderStats();
-  renderAgenda();
-};
 
 const toggleViewMode = () => {
   state.isStudentView = !state.isStudentView;

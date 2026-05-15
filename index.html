@@ -82,9 +82,14 @@
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Authenticated as</p>
             <p id="userEmail" class="text-sm font-bold text-slate-700"></p>
           </div>
-          <button id="signOutBtn" class="btn-accent px-4 py-2 text-sm">
-            Sign Out
-          </button>
+          <div class="flex gap-2">
+            <button id="switchViewBtn" class="px-4 py-2 text-xs font-black uppercase tracking-widest bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+              Student View
+            </button>
+            <button id="signOutBtn" class="btn-accent px-4 py-2 text-sm">
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
       
@@ -109,6 +114,20 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Column: Students List -->
             <div class="lg:col-span-2 space-y-8">
+              <!-- Today's Agenda Widget -->
+              <div id="agendaWidget" class="hidden glass-card rounded-3xl p-6 border-accent-100 bg-accent-50/20">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                    <svg class="h-6 w-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    Today's Agenda
+                  </h3>
+                  <span id="agendaDate" class="text-xs font-black uppercase tracking-widest text-accent-600">May 15, 2026</span>
+                </div>
+                <div id="agendaItems" class="space-y-3">
+                  <!-- Topics for today rendered here -->
+                </div>
+              </div>
+
               <div class="flex items-end justify-between">
                 <div>
                   <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Student Roster</h2>
@@ -134,6 +153,10 @@
                   <div>
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Grade</label>
                     <input type="text" id="studentGrade" class="input-field" placeholder="Grade 3" required>
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Avatar URL (Optional)</label>
+                    <input type="url" id="studentAvatar" class="input-field" placeholder="Link to profile picture">
                   </div>
                   <div class="md:col-span-4 flex gap-4 mt-2">
                     <button type="submit" id="studentSubmit" class="btn-primary flex-1">Add Student</button>

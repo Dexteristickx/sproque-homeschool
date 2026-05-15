@@ -114,3 +114,13 @@
   background: radial-gradient(circle at top right, rgba(180, 83, 9, 0.03), transparent),
               radial-gradient(circle at bottom left, rgba(30, 41, 59, 0.03), transparent);
 }
+
+/* Student Mode Hiding */
+body.student-mode [data-action="edit-student"],
+body.student-mode [data-action="delete-student"],
+body.student-mode [data-action="edit-topic"],
+body.student-mode [data-action="delete-topic"],
+body.student-mode [data-action="advance-topic"],
+body.student-mode [data-action="delete-announcement"] {
+  display: none !important;
+}

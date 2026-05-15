@@ -114,6 +114,7 @@ const state = {
   attendance: [],
   announcements: [],
   activeTab: 'students',
+  isStudentView: false,
   editingStudentId: null,
   editingTopicId: null,
   editingTopicStatus: 'Prepared',
@@ -154,10 +155,16 @@ const studentForm = document.getElementById('studentForm');
 const studentName = document.getElementById('studentName');
 const studentAge = document.getElementById('studentAge');
 const studentGrade = document.getElementById('studentGrade');
+const studentAvatar = document.getElementById('studentAvatar');
 const studentSubmit = document.getElementById('studentSubmit');
 const studentCancelBtn = document.getElementById('studentCancelBtn');
 const studentList = document.getElementById('studentList');
 const studentCountBadge = document.getElementById('studentCountBadge');
+
+// Agenda
+const agendaWidget = document.getElementById('agendaWidget');
+const agendaItems = document.getElementById('agendaItems');
+const agendaDate = document.getElementById('agendaDate');
 
 // Topics
 const topicForm = document.getElementById('topicForm');
@@ -223,6 +230,7 @@ const confirmModal = document.getElementById('confirmModal');
 const confirmMessage = document.getElementById('confirmMessage');
 const confirmAccept = document.getElementById('confirmAccept');
 const confirmCancel = document.getElementById('confirmCancel');
+const switchViewBtn = document.getElementById('switchViewBtn');
 
 /* ---------------------------------------------
    4. UI Utilities
@@ -300,29 +308,51 @@ const renderStudents = () => {
     return;
   }
 
-  studentList.innerHTML = state.students.map(student => `
-    <article class="glass-card rounded-2xl p-5 hover:border-primary-200 transition-all duration-300 group">
-      <div class="flex items-center justify-between mb-4">
-        <div class="h-10 w-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
-          ${student.name.charAt(0)}
+  studentList.innerHTML = state.students.map(student => {
+    // Calculate Progress
+    const assignedTopics = state.topics.filter(t => (t.assignedStudents || []).includes(student.id));
+    const testedTopics = assignedTopics.filter(t => t.status === 'Tested');
+    const progress = assignedTopics.length ? Math.round((testedTopics.length / assignedTopics.length) * 100) : 0;
+
+    return `
+      <article class="glass-card rounded-2xl p-5 hover:border-primary-200 transition-all duration-300 group">
+        <div class="flex items-center justify-between mb-4">
+          ${student.avatar ? `
+            <img src="${student.avatar}" class="h-12 w-12 rounded-xl object-cover border-2 border-primary-100" />
+          ` : `
+            <div class="h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-xl">
+              ${student.name.charAt(0)}
+            </div>
+          `}
+          <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button data-action="edit-student" data-id="${student.id}" class="p-2 hover:bg-primary-50 rounded-lg text-primary-600 transition-colors">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            </button>
+            <button data-action="delete-student" data-id="${student.id}" class="p-2 hover:bg-accent-50 rounded-lg text-accent-600 transition-colors">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          </div>
         </div>
-        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button data-action="edit-student" data-id="${student.id}" class="p-2 hover:bg-primary-50 rounded-lg text-primary-600 transition-colors">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-          </button>
-          <button data-action="delete-student" data-id="${student.id}" class="p-2 hover:bg-accent-50 rounded-lg text-accent-600 transition-colors">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-          </button>
+        <h4 class="font-bold text-slate-900">${student.name}</h4>
+        <div class="mt-1 flex items-center gap-2 text-xs font-bold text-slate-400">
+          <span class="px-2 py-0.5 rounded bg-slate-100 uppercase tracking-widest">${student.grade}</span>
+          <span>•</span>
+          <span>Age ${student.age}</span>
         </div>
-      </div>
-      <h4 class="font-bold text-slate-900">${student.name}</h4>
-      <div class="mt-1 flex items-center gap-2 text-xs font-bold text-slate-400">
-        <span class="px-2 py-0.5 rounded bg-slate-100 uppercase tracking-widest">${student.grade}</span>
-        <span>•</span>
-        <span>Age ${student.age}</span>
-      </div>
-    </article>
-  `).join('');
+        
+        <div class="mt-4">
+          <div class="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">
+            <span>Milestone Progress</span>
+            <span>${progress}%</span>
+          </div>
+          <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-accent-500 rounded-full transition-all duration-1000" style="width: ${progress}%"></div>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+};
 };
 
 const renderTopics = () => {
@@ -392,6 +422,36 @@ const renderTopics = () => {
       </article>
     `;
   }).join('');
+};
+
+const renderAgenda = () => {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayTopics = state.topics.filter(t => t.datePrepared === todayStr);
+  
+  if (!todayTopics.length) {
+    agendaWidget.classList.add('hidden');
+    return;
+  }
+
+  agendaWidget.classList.remove('hidden');
+  agendaDate.textContent = new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  
+  agendaItems.innerHTML = todayTopics.map(t => `
+    <div class="p-4 bg-white/60 rounded-2xl border border-accent-100 flex items-center justify-between group hover:bg-white transition-all cursor-pointer" data-tab="curriculum" onclick="document.querySelector('[data-tab=curriculum]').click()">
+      <div class="flex items-center gap-4">
+        <div class="h-10 w-10 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+        </div>
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-widest text-accent-500">${t.subject}</p>
+          <p class="text-sm font-bold text-slate-900">${t.title}</p>
+        </div>
+      </div>
+      <div class="px-3 py-1 rounded-lg bg-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500">
+        ${t.status}
+      </div>
+    </div>
+  `).join('');
 };
 
 const renderSessions = () => {
@@ -486,9 +546,13 @@ const renderGradebook = () => {
     return `
       <article class="glass-card rounded-3xl p-6 hover:shadow-2xl transition-all duration-300">
         <div class="flex items-center gap-4 mb-6">
-          <div class="h-12 w-12 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-black">
-            ${student.name.charAt(0)}
-          </div>
+          ${student.avatar ? `
+            <img src="${student.avatar}" class="h-12 w-12 rounded-2xl object-cover" />
+          ` : `
+            <div class="h-12 w-12 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-600 text-xl font-black">
+              ${student.name.charAt(0)}
+            </div>
+          `}
           <div>
             <h4 class="font-bold text-slate-900">${student.name}</h4>
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${student.grade}</p>
@@ -835,6 +899,28 @@ const startRealtimeListeners = () => {
   });
   
   renderStats();
+  renderAgenda();
+};
+
+const toggleViewMode = () => {
+  state.isStudentView = !state.isStudentView;
+  switchViewBtn.textContent = state.isStudentView ? 'Educator View' : 'Student View';
+  
+  // Hide all administrative forms and buttons
+  const forms = [studentForm, topicForm, sessionForm, announcementForm, attendanceLogger.parentElement.parentElement];
+  forms.forEach(f => {
+    if (f) f.classList.toggle('hidden', state.isStudentView);
+  });
+
+  // Hide edit/delete actions
+  document.body.classList.toggle('student-mode', state.isStudentView);
+  
+  showToast(`Switched to ${state.isStudentView ? 'Student' : 'Educator'} View`, 'info');
+  
+  // Re-render components to reflect visibility
+  renderStudents();
+  renderTopics();
+  renderGradebook();
 };
 
 const updateFormSelects = () => {
@@ -947,6 +1033,9 @@ togglePassword.addEventListener('click', () => {
   }
 });
 
+// View Switching
+switchViewBtn.addEventListener('click', toggleViewMode);
+
 // Tab Switching
 tabButtons.forEach(btn => btn.addEventListener('click', () => {
   const tab = btn.dataset.tab;
@@ -1019,6 +1108,7 @@ studentForm.addEventListener('submit', async e => {
     name: studentName.value,
     age: parseInt(studentAge.value),
     grade: studentGrade.value,
+    avatar: studentAvatar.value,
     updatedAt: serverTimestamp(),
     ownerId: state.user?.uid
   };
@@ -1134,6 +1224,7 @@ document.addEventListener('click', async e => {
       studentName.value = s.name;
       studentAge.value = s.age;
       studentGrade.value = s.grade;
+      studentAvatar.value = s.avatar || '';
       studentSubmit.textContent = 'Update Profile';
       studentCancelBtn.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -139,6 +139,8 @@ const authToggleButtons = document.querySelectorAll('[data-auth-mode]');
 const authSubmit = document.getElementById('authSubmit');
 const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
+const togglePassword = document.getElementById('togglePassword');
+const eyeIcon = document.getElementById('eyeIcon');
 const authError = document.getElementById('authError');
 const userEmailDisplay = document.getElementById('userEmail');
 const signOutBtn = document.getElementById('signOutBtn');
@@ -923,6 +925,27 @@ onAuthStateChanged(auth, user => {
 });
 
 signOutBtn.addEventListener('click', () => signOut(auth));
+
+// Password Toggle
+togglePassword.addEventListener('click', () => {
+  const isPassword = authPassword.type === 'password';
+  authPassword.type = isPassword ? 'text' : 'password';
+  
+  if (isPassword) {
+    // Show Eye Off (Hidden)
+    eyeIcon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.976 9.976 0 012.146-3.512M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+    `;
+  } else {
+    // Show Eye (Visible)
+    eyeIcon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    `;
+  }
+});
 
 // Tab Switching
 tabButtons.forEach(btn => btn.addEventListener('click', () => {

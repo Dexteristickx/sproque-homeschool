@@ -124,3 +124,41 @@ body.student-mode [data-action="advance-topic"],
 body.student-mode [data-action="delete-announcement"] {
   display: none !important;
 }
+
+/* Dark Mode Overrides */
+body.dark {
+  @apply bg-slate-950 text-slate-100;
+}
+
+body.dark .glass-card {
+  @apply bg-slate-900/60 border-white/5 shadow-2xl;
+}
+
+body.dark .bg-mesh {
+  opacity: 0.15;
+  filter: brightness(0.5);
+}
+
+body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark label {
+  @apply text-white;
+}
+
+body.dark .input-field {
+  @apply bg-slate-800/50 border-slate-700 text-white focus:bg-slate-800;
+}
+
+body.dark .text-slate-500, body.dark .text-slate-400 {
+  @apply text-slate-400;
+}
+
+body.dark .bg-slate-50, body.dark .bg-slate-100 {
+  @apply bg-slate-800/50;
+}
+
+body.dark .bg-white {
+  @apply bg-slate-900;
+}
+
+body.dark .border-slate-100, body.dark .border-slate-200 {
+  @apply border-slate-800;
+}

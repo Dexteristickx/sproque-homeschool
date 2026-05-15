@@ -83,6 +83,10 @@
             <p id="userEmail" class="text-sm font-bold text-slate-700"></p>
           </div>
           <div class="flex gap-2">
+            <button id="darkModeToggle" class="p-2 text-slate-400 hover:text-primary-600 transition-colors">
+              <svg id="moonIcon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+              <svg id="sunIcon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </button>
             <button id="switchViewBtn" class="px-4 py-2 text-xs font-black uppercase tracking-widest bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
               Student View
             </button>
@@ -98,11 +102,13 @@
         <div class="flex flex-wrap gap-2 overflow-x-auto pb-2 scroll-shadow no-scrollbar">
           <button data-tab="students" class="tab-btn tab-btn-active">Dashboard</button>
           <button data-tab="curriculum" class="tab-btn tab-btn-inactive">Curriculum</button>
+          <button data-tab="quizzes" class="tab-btn tab-btn-inactive">Quizzes</button>
           <button data-tab="sessions" class="tab-btn tab-btn-inactive">Session Logs</button>
           <button data-tab="calendar" class="tab-btn tab-btn-inactive">Schedule</button>
-          <button data-tab="gradebook" class="tab-btn tab-btn-inactive">Gradebook</button>
+          <button data-tab="library" class="tab-btn tab-btn-inactive">Library</button>
           <button data-tab="analytics" class="tab-btn tab-btn-inactive">Analytics</button>
           <button data-tab="attendance" class="tab-btn tab-btn-inactive">Attendance</button>
+          <button data-tab="gradebook" class="tab-btn tab-btn-inactive">Gradebook</button>
         </div>
       </nav>
     </header>
@@ -237,7 +243,13 @@
                   <input id="topicTitle" type="text" required placeholder="e.g. Introduction to Fractals" class="input-field" />
                 </div>
                 <div class="space-y-1.5">
-                  <label for="topicDescription" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Learning Objectives</label>
+                  <div class="flex items-center justify-between">
+                    <label for="topicDescription" class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Learning Objectives</label>
+                    <button type="button" id="aiAssistBtn" class="text-[10px] font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 flex items-center gap-1 transition-all">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      AI Assist
+                    </button>
+                  </div>
                   <textarea id="topicDescription" rows="3" required placeholder="What will be learned?" class="input-field resize-none"></textarea>
                 </div>
                 <div class="space-y-1.5">
@@ -436,29 +448,69 @@
             </div>
           </div>
         </section>
-      </main>
-  </div>
+        <!-- Resource Library Section -->
+        <section id="librarySection" data-section="library" class="hidden animate-fade-in space-y-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Resource Vault</h2>
+              <p class="mt-2 text-lg text-slate-500 font-medium">All curriculum links and materials in one place.</p>
+            </div>
+          </div>
+          <div id="libraryContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Resources aggregated here -->
+          </div>
+        </section>
 
-  <!-- Global Toasts -->
-  <div id="toastContainer" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
+        <!-- Quizzes Section -->
+        <section id="quizzesSection" data-section="quizzes" class="hidden animate-fade-in space-y-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h2 class="text-4xl font-black tracking-tight text-slate-900" style="font-family: 'Playfair Display', serif;">Interactive Quizzes</h2>
+              <p class="mt-2 text-lg text-slate-500 font-medium">Create and manage topic assessments.</p>
+            </div>
+            <button id="addQuizBtn" class="btn-primary">Create New Quiz</button>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="quizList" class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Quiz cards here -->
+            </div>
+            <div class="space-y-6">
+              <div id="quizFormContainer" class="hidden glass-card rounded-3xl p-6 border-primary-100">
+                <h3 class="text-xl font-bold mb-4">Quiz Builder</h3>
+                <form id="quizForm" class="space-y-4">
+                  <div>
+                    <label class="text-[10px] font-black uppercase text-slate-400">Select Topic</label>
+                    <select id="quizTopicSelect" class="input-field mt-1" required></select>
+                  </div>
+                  <div id="quizQuestionsContainer" class="space-y-4">
+                    <!-- Question fields here -->
+                  </div>
+                  <button type="button" id="addQuestionBtn" class="text-xs font-bold text-primary-600 hover:text-primary-700">+ Add Question</button>
+                  <div class="flex gap-2 pt-4">
+                    <button type="submit" class="btn-primary flex-1">Save Quiz</button>
+                    <button type="button" id="cancelQuizBtn" class="btn-ghost">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
 
-  <!-- Premium Confirm Modal -->
-  <div id="confirmModal" class="fixed inset-0 z-[110] hidden items-center justify-center px-6 transition-all duration-300">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
-    <div class="relative w-full max-w-sm glass-card rounded-3xl p-8 shadow-2xl animate-fade-in">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-100 text-accent-600">
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <!-- Quiz Take Modal -->
+        <div id="quizModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+          <div class="glass-card rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div id="quizTitle" class="text-2xl font-black mb-6"></div>
+            <div id="quizActiveContent" class="space-y-8">
+              <!-- Questions for taking the quiz -->
+            </div>
+            <div class="mt-8 flex gap-4">
+              <button id="submitQuizAttempt" class="btn-primary flex-1 py-4">Submit Quiz</button>
+              <button id="closeQuizModal" class="btn-ghost">Exit</button>
+            </div>
+          </div>
         </div>
-        <h4 id="confirmTitle" class="text-xl font-bold text-slate-900">Confirm Action</h4>
-      </div>
-      <p id="confirmMessage" class="text-slate-500 font-medium leading-relaxed mb-8"></p>
-      <div class="flex gap-3">
-        <button id="confirmCancel" class="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-100 font-bold text-slate-500 hover:bg-slate-50 transition-colors">Go Back</button>
-        <button id="confirmAccept" class="flex-1 btn-accent">Confirm</button>
-      </div>
-    </div>
-  </div>
+      </main>
 
   <script type="module" src="/src/main.js"></script>
 </body>

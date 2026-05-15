@@ -115,6 +115,8 @@ const state = {
   announcements: [],
   activeTab: 'students',
   isStudentView: false,
+  isDarkMode: false,
+  quizzes: [],
   editingStudentId: null,
   editingTopicId: null,
   editingTopicStatus: 'Prepared',
@@ -231,6 +233,26 @@ const confirmMessage = document.getElementById('confirmMessage');
 const confirmAccept = document.getElementById('confirmAccept');
 const confirmCancel = document.getElementById('confirmCancel');
 const switchViewBtn = document.getElementById('switchViewBtn');
+const darkModeToggle = document.getElementById('darkModeToggle');
+const moonIcon = document.getElementById('moonIcon');
+const sunIcon = document.getElementById('sunIcon');
+
+// Master Features
+const aiAssistBtn = document.getElementById('aiAssistBtn');
+const libraryContent = document.getElementById('libraryContent');
+const quizList = document.getElementById('quizList');
+const quizFormContainer = document.getElementById('quizFormContainer');
+const quizForm = document.getElementById('quizForm');
+const quizTopicSelect = document.getElementById('quizTopicSelect');
+const quizQuestionsContainer = document.getElementById('quizQuestionsContainer');
+const addQuestionBtn = document.getElementById('addQuestionBtn');
+const addQuizBtn = document.getElementById('addQuizBtn');
+const cancelQuizBtn = document.getElementById('cancelQuizBtn');
+const quizModal = document.getElementById('quizModal');
+const quizTitle = document.getElementById('quizTitle');
+const quizActiveContent = document.getElementById('quizActiveContent');
+const submitQuizAttempt = document.getElementById('submitQuizAttempt');
+const closeQuizModal = document.getElementById('closeQuizModal');
 
 /* ---------------------------------------------
    4. UI Utilities
@@ -296,6 +318,60 @@ const formatDate = (date) => {
 /* ---------------------------------------------
    5. Core Logic & Rendering
    --------------------------------------------- */
+let unsubStudents, unsubTopics, unsubSessions, unsubAttendance, unsubAnnouncements, unsubQuizzes;
+
+const startRealtimeListeners = () => {
+  if (unsubStudents) unsubStudents();
+  if (unsubTopics) unsubTopics();
+  if (unsubSessions) unsubSessions();
+  if (unsubAttendance) unsubAttendance();
+  if (unsubAnnouncements) unsubAnnouncements();
+  if (unsubQuizzes) unsubQuizzes();
+
+  const q = (path) => query(collection(db, path), where('ownerId', '==', state.user.uid));
+
+  unsubStudents = onSnapshot(q('students'), snap => {
+    state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStudents();
+    updateFormSelects();
+    updateFilters();
+    renderAttendance();
+  });
+
+  unsubTopics = onSnapshot(q('topics'), snap => {
+    state.topics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTopics();
+    updateFormSelects();
+    updateFilters();
+    renderStats();
+    renderAgenda();
+    renderCalendar();
+    renderLibrary();
+  });
+
+  unsubSessions = onSnapshot(q('sessions'), snap => {
+    state.sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSessions();
+    renderStats();
+    renderGradebook();
+  });
+
+  unsubAttendance = onSnapshot(q('attendance'), snap => {
+    state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAttendance();
+  });
+
+  unsubAnnouncements = onSnapshot(q('announcements'), snap => {
+    state.announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAnnouncements();
+  });
+
+  unsubQuizzes = onSnapshot(q('quizzes'), snap => {
+    state.quizzes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderQuizzes();
+  });
+};
+
 const renderStudents = () => {
   studentCountBadge.textContent = `${state.students.length} ${state.students.length === 1 ? 'Student' : 'Students'} Registered`;
   
@@ -352,7 +428,6 @@ const renderStudents = () => {
       </article>
     `;
   }).join('');
-};
 };
 
 const renderTopics = () => {
@@ -452,6 +527,60 @@ const renderAgenda = () => {
       </div>
     </div>
   `).join('');
+};
+
+const renderLibrary = () => {
+  const links = state.topics.filter(t => t.resourceLink || (t.resources && t.resources.length > 0));
+  
+  if (!links.length) {
+    libraryContent.innerHTML = '<div class="col-span-full glass-card p-12 text-center italic text-slate-400">No resources in your vault yet. Add links to your curriculum modules.</div>';
+    return;
+  }
+
+  libraryContent.innerHTML = links.map(t => `
+    <article class="glass-card rounded-2xl p-6 hover:border-primary-200 transition-all group">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="px-2 py-1 rounded bg-primary-50 text-[8px] font-black uppercase tracking-widest text-primary-600">${t.subject}</span>
+        <h4 class="font-bold text-slate-900 truncate">${t.title}</h4>
+      </div>
+      ${t.resourceLink ? `
+        <a href="${t.resourceLink}" target="_blank" class="block w-full text-center py-3 bg-slate-50 hover:bg-primary-50 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-primary-600 rounded-xl transition-all mb-2 border border-slate-100">
+          Main Resource
+        </a>
+      ` : ''}
+      ${(t.resources || []).map(r => `
+        <div class="text-[10px] font-medium text-slate-500 bg-white/50 p-2 rounded-lg border border-slate-50 mb-1 truncate">${r}</div>
+      `).join('')}
+    </article>
+  `).join('');
+};
+
+const renderQuizzes = () => {
+  if (!state.quizzes.length) {
+    quizList.innerHTML = '<div class="col-span-full glass-card p-12 text-center italic text-slate-400">No quizzes created. Start by clicking "Create New Quiz".</div>';
+    return;
+  }
+
+  quizList.innerHTML = state.quizzes.map(q => {
+    const topic = state.topics.find(t => t.id === q.topicId);
+    return `
+      <article class="glass-card rounded-3xl p-6 border-slate-100 hover:border-accent-200 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-accent-600">${topic?.subject || 'Misc'}</p>
+            <h4 class="text-lg font-bold text-slate-900 mt-1">${topic?.title || 'Untitled Quiz'}</h4>
+          </div>
+          <button data-action="delete-quiz" data-id="${q.id}" class="text-slate-300 hover:text-accent-600 transition-colors opacity-0 group-hover:opacity-100 educator-only">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </div>
+        <p class="text-xs font-medium text-slate-500 mb-6">${q.questions.length} Questions</p>
+        <button data-action="take-quiz" data-id="${q.id}" class="w-full py-3 bg-accent-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-accent-700 transition-all shadow-lg shadow-accent-500/20">
+          Take Quiz
+        </button>
+      </article>
+    `;
+  }).join('');
 };
 
 const renderSessions = () => {
@@ -1044,7 +1173,169 @@ tabButtons.forEach(btn => btn.addEventListener('click', () => {
   if (tab === 'attendance') renderAttendance();
   if (tab === 'calendar') renderCalendar();
   if (tab === 'analytics') renderAnalytics();
+  if (tab === 'library') renderLibrary();
+  if (tab === 'quizzes') renderQuizzes();
 }));
+
+// Master Logic: AI Assist
+aiAssistBtn.addEventListener('click', async () => {
+  const title = topicTitle.value;
+  if (!title) {
+    showToast('Please enter a topic title first', 'warn');
+    return;
+  }
+
+  aiAssistBtn.disabled = true;
+  aiAssistBtn.innerHTML = '<span class="animate-pulse italic">Consulting AI...</span>';
+  
+  // Simulated AI Logic (In a real app, this would hit an API)
+  setTimeout(() => {
+    const suggestions = {
+      'Photosynthesis': 'Understand how plants convert light into chemical energy. Key points: Chlorophyll, Sunlight, Water, and CO2. Explore the Light-dependent and Light-independent reactions.',
+      'Fractals': 'Explore self-similar patterns in mathematics and nature. Key points: Mandelbrot set, Infinite complexity, Recursive geometry. Practical examples: Ferns, Romanesco broccoli.',
+      'Ancient Rome': 'The rise and fall of the Roman Empire. Key points: Republic vs Empire, Engineering (Aqueducts), Social hierarchy (Patricians/Plebeians), and the influence on modern law.'
+    };
+
+    const result = suggestions[title] || `In-depth exploration of ${title}. Objectives include understanding core principles, historical context, and practical applications in modern scenarios. Research key terminology and identify 3 primary case studies.`;
+    
+    topicDescription.value = result;
+    showToast('AI suggestion generated!', 'success');
+    aiAssistBtn.disabled = false;
+    aiAssistBtn.innerHTML = '<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> AI Assist';
+  }, 1200);
+});
+
+// Master Logic: Quizzes
+addQuizBtn.addEventListener('click', () => {
+  quizFormContainer.classList.remove('hidden');
+  quizQuestionsContainer.innerHTML = '';
+  addQuestion(0);
+  updateQuizTopicSelect();
+});
+
+cancelQuizBtn.addEventListener('click', () => quizFormContainer.classList.add('hidden'));
+
+const addQuestion = (index) => {
+  const div = document.createElement('div');
+  div.className = 'p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3';
+  div.innerHTML = `
+    <input type="text" class="input-field bg-white" placeholder="Question ${index + 1}" required data-q-text>
+    <div class="grid grid-cols-2 gap-2">
+      <input type="text" class="input-field bg-white py-1.5" placeholder="Option A" required data-opt-a>
+      <input type="text" class="input-field bg-white py-1.5" placeholder="Option B" required data-opt-b>
+    </div>
+    <select class="input-field bg-white py-1.5" required data-correct>
+      <option value="">Correct Answer</option>
+      <option value="A">Option A</option>
+      <option value="B">Option B</option>
+    </select>
+  `;
+  quizQuestionsContainer.appendChild(div);
+};
+
+addQuestionBtn.addEventListener('click', () => addQuestion(quizQuestionsContainer.children.length));
+
+const updateQuizTopicSelect = () => {
+  quizTopicSelect.innerHTML = state.topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+};
+
+quizForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const questions = Array.from(quizQuestionsContainer.children).map(div => ({
+    text: div.querySelector('[data-q-text]').value,
+    optA: div.querySelector('[data-opt-a]').value,
+    optB: div.querySelector('[data-opt-b]').value,
+    correct: div.querySelector('[data-correct]').value
+  }));
+
+  try {
+    await addDoc(collection(db, 'quizzes'), {
+      topicId: quizTopicSelect.value,
+      questions,
+      createdAt: serverTimestamp(),
+      ownerId: state.user.uid
+    });
+    quizFormContainer.classList.add('hidden');
+    showToast('Interactive quiz created!', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+// Take Quiz Logic
+let activeQuiz = null;
+let quizAnswers = [];
+
+const takeQuiz = (quizId) => {
+  activeQuiz = state.quizzes.find(q => q.id === quizId);
+  const topic = state.topics.find(t => t.id === activeQuiz.topicId);
+  
+  quizTitle.textContent = topic?.title || 'Quiz';
+  quizActiveContent.innerHTML = activeQuiz.questions.map((q, i) => `
+    <div class="space-y-4">
+      <p class="font-bold text-slate-900">${i + 1}. ${q.text}</p>
+      <div class="grid grid-cols-2 gap-4">
+        <button onclick="window.selectQuizAnswer(${i}, 'A')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-A">
+          <span class="text-primary-600 mr-2">A</span> ${q.optA}
+        </button>
+        <button onclick="window.selectQuizAnswer(${i}, 'B')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-B">
+          <span class="text-primary-600 mr-2">B</span> ${q.optB}
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  quizAnswers = new Array(activeQuiz.questions.length).fill(null);
+  quizModal.classList.remove('hidden');
+};
+
+window.selectQuizAnswer = (qIdx, answer) => {
+  quizAnswers[qIdx] = answer;
+  // Visual feedback
+  const opts = quizModal.querySelectorAll(`[id^="q-${qIdx}-"]`);
+  opts.forEach(o => o.classList.remove('border-primary-500', 'bg-primary-50'));
+  document.getElementById(`q-${qIdx}-${answer}`).classList.add('border-primary-500', 'bg-primary-50');
+};
+
+submitQuizAttempt.addEventListener('click', () => {
+  if (quizAnswers.includes(null)) {
+    showToast('Please answer all questions', 'warn');
+    return;
+  }
+
+  let correct = 0;
+  activeQuiz.questions.forEach((q, i) => {
+    if (q.correct === quizAnswers[i]) correct++;
+  });
+
+  const score = Math.round((correct / activeQuiz.questions.length) * 100);
+  quizModal.classList.add('hidden');
+  
+  // Custom Alert for result
+  const title = score >= 70 ? '🎉 Mastery Achieved!' : '📚 Keep Learning!';
+  confirmAction(`${title}\nYou scored ${score}%\n\nWould you like to log this result to the Gradebook?`).then(confirmed => {
+    if (confirmed) {
+      // Logic to auto-open session form with score pre-filled could go here
+      setActiveTab('sessions');
+      sessionTopic.value = activeQuiz.topicId;
+      sessionMode.value = 'testing';
+      sessionMode.dispatchEvent(new Event('change'));
+      sessionScore.value = score;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+});
+
+closeQuizModal.addEventListener('click', () => quizModal.classList.add('hidden'));
+
+// Master Logic: Dark Mode
+darkModeToggle.addEventListener('click', () => {
+  state.isDarkMode = !state.isDarkMode;
+  document.body.classList.toggle('dark', state.isDarkMode);
+  moonIcon.classList.toggle('hidden', state.isDarkMode);
+  sunIcon.classList.toggle('hidden', !state.isDarkMode);
+  showToast(`Switched to ${state.isDarkMode ? 'Midnight Scholar' : 'Ivy League'} Mode`, 'info');
+});
 
 // Announcements
 announcementForm.addEventListener('submit', async e => {
@@ -1247,9 +1538,21 @@ document.addEventListener('click', async e => {
     }
   }
 
+  if (e.target.closest('[data-action="take-quiz"]')) {
+    takeQuiz(e.target.closest('[data-action="take-quiz"]').dataset.id);
+  }
+
   if (delBtn) {
     const id = delBtn.dataset.id;
     const action = delBtn.dataset.action;
+
+    if (action === 'delete-quiz') {
+      if (await confirmAction('Delete this quiz forever?')) {
+        await deleteDoc(doc(db, 'quizzes', id));
+        showToast('Quiz removed', 'success');
+      }
+      return;
+    }
 
     if (action === 'delete-announcement') {
       if (await confirmAction('Delete this reminder?')) {

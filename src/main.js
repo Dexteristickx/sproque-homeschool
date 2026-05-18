@@ -1584,11 +1584,15 @@ const updateDriveUI = () => {
 
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', () => {
+    console.log('Connect Google Drive button clicked!');
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
     
+    console.log('Client ID:', clientId);
+    console.log('Redirect URI:', redirectUri);
+
     if (!clientId || !redirectUri) {
-      showToast('Missing Google Client ID or Redirect URI in env vars', 'error');
+      showToast(`Missing configuration. Client ID: ${clientId ? 'OK' : 'MISSING'}, Redirect URI: ${redirectUri ? 'OK' : 'MISSING'}`, 'error');
       return;
     }
 
@@ -1598,7 +1602,8 @@ if (googleLoginBtn) {
       `&response_type=token` +
       `&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file')}` +
       `&prompt=consent`;
-      
+    
+    console.log('Redirecting to Google OAuth URL:', authUrl);
     window.location.href = authUrl;
   });
 }

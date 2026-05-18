@@ -1094,81 +1094,153 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-signOutBtn.addEventListener('click', () => signOut(auth));
+if (signOutBtn) signOutBtn.addEventListener('click', () => signOut(auth));
 
 // Password Toggle
-togglePassword.addEventListener('click', () => {
-  const isPassword = authPassword.type === 'password';
-  authPassword.type = isPassword ? 'text' : 'password';
-  
-  if (isPassword) {
-    // Show Eye Off (Hidden)
-    eyeIcon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.976 9.976 0 012.146-3.512M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
-    `;
-  } else {
-    // Show Eye (Visible)
-    eyeIcon.innerHTML = `
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    `;
-  }
-});
+if (togglePassword) {
+  togglePassword.addEventListener('click', () => {
+    const isPassword = authPassword.type === 'password';
+    authPassword.type = isPassword ? 'text' : 'password';
+    
+    if (isPassword) {
+      // Show Eye Off (Hidden)
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.976 9.976 0 012.146-3.512M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+      `;
+    } else {
+      // Show Eye (Visible)
+      eyeIcon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      `;
+    }
+  });
+}
 
 // View Switching
-switchViewBtn.addEventListener('click', toggleViewMode);
+if (switchViewBtn) {
+  switchViewBtn.addEventListener('click', toggleViewMode);
+}
 
 // Tab Switching
-tabButtons.forEach(btn => btn.addEventListener('click', () => {
-  const tab = btn.dataset.tab;
-  setActiveTab(tab);
-  if (tab === 'gradebook') renderGradebook();
-  if (tab === 'attendance') renderAttendance();
-  if (tab === 'calendar') renderCalendar();
-  if (tab === 'analytics') renderAnalytics();
-  if (tab === 'library') renderLibrary();
-  if (tab === 'quizzes') renderQuizzes();
-}));
+if (tabButtons) {
+  tabButtons.forEach(btn => btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    setActiveTab(tab);
+    if (tab === 'gradebook') renderGradebook();
+    if (tab === 'attendance') renderAttendance();
+    if (tab === 'calendar') renderCalendar();
+    if (tab === 'analytics') renderAnalytics();
+    if (tab === 'library') renderLibrary();
+    if (tab === 'quizzes') renderQuizzes();
+  }));
+}
 
 // Master Logic: AI Assist
-aiAssistBtn.addEventListener('click', async () => {
-  const title = topicTitle.value;
-  if (!title) {
-    showToast('Please enter a topic title first', 'warn');
-    return;
-  }
-
-  aiAssistBtn.disabled = true;
-  aiAssistBtn.innerHTML = '<span class="animate-pulse italic">Consulting AI...</span>';
-  
-  // Simulated AI Logic (In a real app, this would hit an API)
-  setTimeout(() => {
-    const suggestions = {
-      'Photosynthesis': 'Understand how plants convert light into chemical energy. Key points: Chlorophyll, Sunlight, Water, and CO2. Explore the Light-dependent and Light-independent reactions.',
-      'Fractals': 'Explore self-similar patterns in mathematics and nature. Key points: Mandelbrot set, Infinite complexity, Recursive geometry. Practical examples: Ferns, Romanesco broccoli.',
-      'Ancient Rome': 'The rise and fall of the Roman Empire. Key points: Republic vs Empire, Engineering (Aqueducts), Social hierarchy (Patricians/Plebeians), and the influence on modern law.'
-    };
-
-    const result = suggestions[title] || `In-depth exploration of ${title}. Objectives include understanding core principles, historical context, and practical applications in modern scenarios. Research key terminology and identify 3 primary case studies.`;
+if (aiAssistBtn) {
+  aiAssistBtn.addEventListener('click', async () => {
+    const title = topicTitle.value.trim();
+    const subject = topicSubject.value.trim() || 'General';
     
-    topicDescription.value = result;
-    showToast('AI suggestion generated!', 'success');
-    aiAssistBtn.disabled = false;
-    aiAssistBtn.innerHTML = '<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> AI Assist';
-  }, 1200);
-});
+    if (!title) {
+      showToast('Please enter a topic title first', 'warn');
+      return;
+    }
+
+    aiAssistBtn.disabled = true;
+    const originalText = aiAssistBtn.innerHTML;
+    aiAssistBtn.innerHTML = '<span class="animate-pulse italic">Consulting AI Scholar...</span>';
+    
+    // Dynamic Educational Planner Engine
+    setTimeout(() => {
+      try {
+        const cleanSubject = subject.toLowerCase().trim();
+        
+        // Subject-specific educational frameworks
+        const frameworks = {
+          science: {
+            intro: `Explore the foundational concepts of "${title}" in scientific inquiry.`,
+            objectives: [
+              `Understand the core biological, chemical, or physical mechanisms governing ${title}.`,
+              `Investigate real-world systems, cycles, and phenomena related to this topic.`,
+              `Develop critical scientific thinking and laboratory observation skills.`
+            ],
+            activities: `Interactive science experiment/simulation, diagram labeling, and a concept review quiz.`
+          },
+          math: {
+            intro: `Master the mathematical principles and problem-solving techniques for "${title}".`,
+            objectives: [
+              `Identify and apply the core formulas, equations, and rules of ${title}.`,
+              `Solve multi-step equations and apply mathematical models to practical challenges.`,
+              `Build logical reasoning, analytical analysis, and deductive proof capabilities.`
+            ],
+            activities: `Practice worksheet problems, collaborative whiteboard solving, and a digital test.`
+          },
+          history: {
+            intro: `Analyze the historical significance, key figures, and cultural impacts of "${title}".`,
+            objectives: [
+              `Trace the timeline of events, origins, and long-term consequences of this period.`,
+              `Compare and contrast primary source documents and distinct socio-political viewpoints.`,
+              `Understand the relevance of ${title} to modern democratic systems and global culture.`
+            ],
+            activities: `Primary source document review, creative timeline mapping, and group discussion.`
+          },
+          english: {
+            intro: `Examine the literary elements, grammatical structures, and vocabulary of "${title}".`,
+            objectives: [
+              `Analyze theme, character arcs, or stylistic devices within the studied texts.`,
+              `Apply advanced composition, syntax structure, and narrative techniques.`,
+              `Enhance critical textual analysis, active reading comprehension, and presentation skills.`
+            ],
+            activities: `Creative writing prompt, comparative textual analysis, and peer editing workshop.`
+          }
+        };
+
+        // Select matching framework or fallback
+        let framework = frameworks.science; // Default fallback
+        if (cleanSubject.includes('math') || cleanSubject.includes('algebra') || cleanSubject.includes('calculus') || cleanSubject.includes('geometry') || cleanSubject.includes('arithmetic')) {
+          framework = frameworks.math;
+        } else if (cleanSubject.includes('hist') || cleanSubject.includes('social') || cleanSubject.includes('civic') || cleanSubject.includes('geography')) {
+          framework = frameworks.history;
+        } else if (cleanSubject.includes('eng') || cleanSubject.includes('lit') || cleanSubject.includes('lang') || cleanSubject.includes('read') || cleanSubject.includes('writ')) {
+          framework = frameworks.english;
+        } else if (cleanSubject.includes('sci') || cleanSubject.includes('bio') || cleanSubject.includes('chem') || cleanSubject.includes('phys')) {
+          framework = frameworks.science;
+        }
+
+        // Build a beautiful, rich educational description
+        const result = `${framework.intro}\n\n🎯 Learning Objectives:\n1. ${framework.objectives[0]}\n2. ${framework.objectives[1]}\n3. ${framework.objectives[2]}\n\n🛠 Suggested Activities:\n• ${framework.activities}`;
+        
+        topicDescription.value = result;
+        showToast('AI lesson plan generated!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to generate AI plan', 'error');
+      } finally {
+        aiAssistBtn.disabled = false;
+        aiAssistBtn.innerHTML = originalText;
+      }
+    }, 1200);
+  });
+}
 
 // Master Logic: Quizzes
-addQuizBtn.addEventListener('click', () => {
-  quizFormContainer.classList.remove('hidden');
-  quizQuestionsContainer.innerHTML = '';
-  addQuestion(0);
-  updateQuizTopicSelect();
-});
+if (addQuizBtn) {
+  addQuizBtn.addEventListener('click', () => {
+    if (quizFormContainer) quizFormContainer.classList.remove('hidden');
+    if (quizQuestionsContainer) quizQuestionsContainer.innerHTML = '';
+    addQuestion(0);
+    updateQuizTopicSelect();
+  });
+}
 
-cancelQuizBtn.addEventListener('click', () => quizFormContainer.classList.add('hidden'));
+if (cancelQuizBtn) {
+  cancelQuizBtn.addEventListener('click', () => {
+    if (quizFormContainer) quizFormContainer.classList.add('hidden');
+  });
+}
 
 const addQuestion = (index) => {
   const div = document.createElement('div');
@@ -1185,37 +1257,46 @@ const addQuestion = (index) => {
       <option value="B">Option B</option>
     </select>
   `;
-  quizQuestionsContainer.appendChild(div);
+  if (quizQuestionsContainer) quizQuestionsContainer.appendChild(div);
 };
 
-addQuestionBtn.addEventListener('click', () => addQuestion(quizQuestionsContainer.children.length));
+if (addQuestionBtn) {
+  addQuestionBtn.addEventListener('click', () => {
+    if (quizQuestionsContainer) addQuestion(quizQuestionsContainer.children.length);
+  });
+}
 
 const updateQuizTopicSelect = () => {
-  quizTopicSelect.innerHTML = state.topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+  if (quizTopicSelect) {
+    quizTopicSelect.innerHTML = state.topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+  }
 };
 
-quizForm.addEventListener('submit', async e => {
-  e.preventDefault();
-  const questions = Array.from(quizQuestionsContainer.children).map(div => ({
-    text: div.querySelector('[data-q-text]').value,
-    optA: div.querySelector('[data-opt-a]').value,
-    optB: div.querySelector('[data-opt-b]').value,
-    correct: div.querySelector('[data-correct]').value
-  }));
+if (quizForm) {
+  quizForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!quizQuestionsContainer) return;
+    const questions = Array.from(quizQuestionsContainer.children).map(div => ({
+      text: div.querySelector('[data-q-text]').value,
+      optA: div.querySelector('[data-opt-a]').value,
+      optB: div.querySelector('[data-opt-b]').value,
+      correct: div.querySelector('[data-correct]').value
+    }));
 
-  try {
-    await addDoc(collection(db, 'quizzes'), {
-      topicId: quizTopicSelect.value,
-      questions,
-      createdAt: serverTimestamp(),
-      ownerId: state.user.uid
-    });
-    quizFormContainer.classList.add('hidden');
-    showToast('Interactive quiz created!', 'success');
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-});
+    try {
+      await addDoc(collection(db, 'quizzes'), {
+        topicId: quizTopicSelect.value,
+        questions,
+        createdAt: serverTimestamp(),
+        ownerId: state.user.uid
+      });
+      if (quizFormContainer) quizFormContainer.classList.add('hidden');
+      showToast('Interactive quiz created!', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+}
 
 // Take Quiz Logic
 let activeQuiz = null;
@@ -1225,92 +1306,111 @@ const takeQuiz = (quizId) => {
   activeQuiz = state.quizzes.find(q => q.id === quizId);
   const topic = state.topics.find(t => t.id === activeQuiz.topicId);
   
-  quizTitle.textContent = topic?.title || 'Quiz';
-  quizActiveContent.innerHTML = activeQuiz.questions.map((q, i) => `
-    <div class="space-y-4">
-      <p class="font-bold text-white">${i + 1}. ${q.text}</p>
-      <div class="grid grid-cols-2 gap-4">
-        <button onclick="window.selectQuizAnswer(${i}, 'A')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-A">
-          <span class="text-primary-600 mr-2">A</span> ${q.optA}
-        </button>
-        <button onclick="window.selectQuizAnswer(${i}, 'B')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-B">
-          <span class="text-primary-600 mr-2">B</span> ${q.optB}
-        </button>
+  if (quizTitle) quizTitle.textContent = topic?.title || 'Quiz';
+  if (quizActiveContent) {
+    quizActiveContent.innerHTML = activeQuiz.questions.map((q, i) => `
+      <div class="space-y-4">
+        <p class="font-bold text-white">${i + 1}. ${q.text}</p>
+        <div class="grid grid-cols-2 gap-4">
+          <button onclick="window.selectQuizAnswer(${i}, 'A')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-A">
+            <span class="text-primary-600 mr-2">A</span> ${q.optA}
+          </button>
+          <button onclick="window.selectQuizAnswer(${i}, 'B')" class="quiz-opt-btn p-4 border-2 border-slate-100 rounded-2xl font-bold hover:border-primary-500 transition-all text-left" id="q-${i}-B">
+            <span class="text-primary-600 mr-2">B</span> ${q.optB}
+          </button>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
   
   quizAnswers = new Array(activeQuiz.questions.length).fill(null);
-  quizModal.classList.remove('hidden');
+  if (quizModal) quizModal.classList.remove('hidden');
 };
 
 window.selectQuizAnswer = (qIdx, answer) => {
   quizAnswers[qIdx] = answer;
   // Visual feedback
-  const opts = quizModal.querySelectorAll(`[id^="q-${qIdx}-"]`);
-  opts.forEach(o => o.classList.remove('border-primary-500', 'bg-primary-50'));
-  document.getElementById(`q-${qIdx}-${answer}`).classList.add('border-primary-500', 'bg-primary-50');
+  if (quizModal) {
+    const opts = quizModal.querySelectorAll(`[id^="q-${qIdx}-"]`);
+    opts.forEach(o => o.classList.remove('border-primary-500', 'bg-primary-50'));
+    const ansEl = document.getElementById(`q-${qIdx}-${answer}`);
+    if (ansEl) ansEl.classList.add('border-primary-500', 'bg-primary-50');
+  }
 };
 
-submitQuizAttempt.addEventListener('click', () => {
-  if (quizAnswers.includes(null)) {
-    showToast('Please answer all questions', 'warn');
-    return;
-  }
-
-  let correct = 0;
-  activeQuiz.questions.forEach((q, i) => {
-    if (q.correct === quizAnswers[i]) correct++;
-  });
-
-  const score = Math.round((correct / activeQuiz.questions.length) * 100);
-  quizModal.classList.add('hidden');
-  
-  // Custom Alert for result
-  const title = score >= 70 ? '🎉 Mastery Achieved!' : '📚 Keep Learning!';
-  confirmAction(`${title}\nYou scored ${score}%\n\nWould you like to log this result to the Gradebook?`).then(confirmed => {
-    if (confirmed) {
-      // Logic to auto-open session form with score pre-filled could go here
-      setActiveTab('sessions');
-      sessionTopic.value = activeQuiz.topicId;
-      sessionMode.value = 'testing';
-      sessionMode.dispatchEvent(new Event('change'));
-      sessionScore.value = score;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+if (submitQuizAttempt) {
+  submitQuizAttempt.addEventListener('click', () => {
+    if (quizAnswers.includes(null)) {
+      showToast('Please answer all questions', 'warn');
+      return;
     }
-  });
-});
 
-closeQuizModal.addEventListener('click', () => quizModal.classList.add('hidden'));
+    let correct = 0;
+    activeQuiz.questions.forEach((q, i) => {
+      if (q.correct === quizAnswers[i]) correct++;
+    });
+
+    const score = Math.round((correct / activeQuiz.questions.length) * 100);
+    if (quizModal) quizModal.classList.add('hidden');
+    
+    // Custom Alert for result
+    const title = score >= 70 ? '🎉 Mastery Achieved!' : '📚 Keep Learning!';
+    confirmAction(`${title}\nYou scored ${score}%\n\nWould you like to log this result to the Gradebook?`).then(confirmed => {
+      if (confirmed) {
+        setActiveTab('sessions');
+        if (sessionTopic) sessionTopic.value = activeQuiz.topicId;
+        if (sessionMode) {
+          sessionMode.value = 'testing';
+          sessionMode.dispatchEvent(new Event('change'));
+        }
+        if (sessionScore) sessionScore.value = score;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
+}
+
+if (closeQuizModal) {
+  closeQuizModal.addEventListener('click', () => {
+    if (quizModal) quizModal.classList.add('hidden');
+  });
+}
 
 // Master Logic: Dark Mode
-darkModeToggle.addEventListener('click', () => {
-  state.isDarkMode = !state.isDarkMode;
-  document.body.classList.toggle('dark', state.isDarkMode);
-  moonIcon.classList.toggle('hidden', state.isDarkMode);
-  sunIcon.classList.toggle('hidden', !state.isDarkMode);
-  showToast(`Switched to ${state.isDarkMode ? 'Midnight Scholar' : 'Ivy League'} Mode`, 'info');
-});
+if (darkModeToggle) {
+  darkModeToggle.addEventListener('click', () => {
+    state.isDarkMode = !state.isDarkMode;
+    document.body.classList.toggle('dark', state.isDarkMode);
+    if (moonIcon) moonIcon.classList.toggle('hidden', state.isDarkMode);
+    if (sunIcon) sunIcon.classList.toggle('hidden', !state.isDarkMode);
+    showToast(`Switched to ${state.isDarkMode ? 'Midnight Scholar' : 'Ivy League'} Mode`, 'info');
+  });
+}
 
 // Announcements
-announcementForm.addEventListener('submit', async e => {
-  e.preventDefault();
-  const text = announcementText.value;
-  try {
-    await addDoc(collection(db, 'announcements'), {
-      text,
-      createdAt: serverTimestamp(),
-      ownerId: state.user.uid
-    });
-    announcementForm.reset();
-    showToast('Note added', 'success');
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-});
+if (announcementForm) {
+  announcementForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!announcementText) return;
+    const text = announcementText.value;
+    try {
+      await addDoc(collection(db, 'announcements'), {
+        text,
+        createdAt: serverTimestamp(),
+        ownerId: state.user.uid
+      });
+      announcementForm.reset();
+      showToast('Note added', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+}
 
 // Export
-exportDataBtn.addEventListener('click', exportToCSV);
+if (exportDataBtn) {
+  exportDataBtn.addEventListener('click', exportToCSV);
+}
 
 // Attendance Logging
 saveAttendanceBtn.addEventListener('click', async () => {

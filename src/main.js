@@ -1697,7 +1697,7 @@ if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', () => {
     console.log('Connect Google Drive button clicked!');
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || (window.location.origin + '/');
     
     console.log('Client ID:', clientId);
     console.log('Redirect URI:', redirectUri);

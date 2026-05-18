@@ -1684,7 +1684,6 @@ const gdriveFilesContainer = document.getElementById('gdriveFilesContainer');
 const resourcePreviewModal = document.getElementById('resourcePreviewModal');
 const previewModalTitle = document.getElementById('previewModalTitle');
 const previewModalSubject = document.getElementById('previewModalSubject');
-const previewModalExternalLink = document.getElementById('previewModalExternalLink');
 const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
 const previewModalLoading = document.getElementById('previewModalLoading');
 const previewModalIframe = document.getElementById('previewModalIframe');
@@ -1720,7 +1719,6 @@ window.viewResource = (url, title, subject) => {
   // Set UI fields
   if (previewModalTitle) previewModalTitle.textContent = title || 'Lesson Resource';
   if (previewModalSubject) previewModalSubject.textContent = subject || 'General';
-  if (previewModalExternalLink) previewModalExternalLink.href = url;
 
   // Show loading spinner and set iframe src
   if (previewModalLoading) previewModalLoading.classList.remove('hidden');

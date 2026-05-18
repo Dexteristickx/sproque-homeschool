@@ -479,10 +479,10 @@ const renderTopics = () => {
           
           <div class="flex items-center gap-2 pt-4 border-t border-white/5">
             ${topic.resourceLink ? `
-              <a href="${topic.resourceLink}" target="_blank" class="flex-1 text-center py-2 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600/20 transition-all flex items-center justify-center gap-2">
-                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              <button onclick="window.viewResource('${topic.resourceLink}', '${topic.title.replace(/'/g, "\\'")}', '${topic.subject.replace(/'/g, "\\'")}')" class="flex-1 text-center py-2 bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 View Resource
-              </a>
+              </button>
             ` : ''}
             <button data-action="advance-topic" data-id="${topic.id}" class="btn-primary py-2 px-4 text-xs">Advance</button>
             <button data-action="edit-topic" data-id="${topic.id}" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors">Edit</button>
@@ -539,9 +539,9 @@ const renderLibrary = () => {
         <h4 class="font-bold text-white truncate">${t.title}</h4>
       </div>
       ${t.resourceLink ? `
-        <a href="${t.resourceLink}" target="_blank" class="block w-full text-center py-3 bg-slate-50 hover:bg-primary-50 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-primary-600 rounded-xl transition-all mb-2 border border-slate-100">
+        <button onclick="window.viewResource('${t.resourceLink}', '${t.title.replace(/'/g, "\\'")}', '${t.subject.replace(/'/g, "\\'")}')" class="block w-full text-center py-3 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-slate-300 hover:text-white rounded-xl transition-all mb-2 border border-white/10 cursor-pointer">
           Main Resource
-        </a>
+        </button>
       ` : ''}
       ${(t.resources || []).map(r => `
         <div class="text-[10px] font-medium text-slate-500 bg-white/50 p-2 rounded-lg border border-slate-50 mb-1 truncate">${r}</div>
@@ -1679,6 +1679,56 @@ const gdriveBrowserLoading = document.getElementById('gdriveBrowserLoading');
 const gdriveBrowserEmpty = document.getElementById('gdriveBrowserEmpty');
 const gdriveBrowserEmptyMsg = document.getElementById('gdriveBrowserEmptyMsg');
 const gdriveFilesContainer = document.getElementById('gdriveFilesContainer');
+
+// Resource Preview elements
+const resourcePreviewModal = document.getElementById('resourcePreviewModal');
+const previewModalTitle = document.getElementById('previewModalTitle');
+const previewModalSubject = document.getElementById('previewModalSubject');
+const previewModalExternalLink = document.getElementById('previewModalExternalLink');
+const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
+const previewModalLoading = document.getElementById('previewModalLoading');
+const previewModalIframe = document.getElementById('previewModalIframe');
+
+window.viewResource = (url, title, subject) => {
+  if (!resourcePreviewModal || !previewModalIframe) return;
+
+  // Resolve preview URL for Google Drive files
+  let embedUrl = url;
+  const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) {
+    const fileId = driveMatch[1];
+    embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+  }
+
+  // Set UI fields
+  if (previewModalTitle) previewModalTitle.textContent = title || 'Lesson Resource';
+  if (previewModalSubject) previewModalSubject.textContent = subject || 'General';
+  if (previewModalExternalLink) previewModalExternalLink.href = url;
+
+  // Show loading spinner and set iframe src
+  if (previewModalLoading) previewModalLoading.classList.remove('hidden');
+  previewModalIframe.src = embedUrl;
+
+  // Open modal
+  resourcePreviewModal.classList.remove('hidden');
+  resourcePreviewModal.classList.add('flex');
+};
+
+if (previewModalIframe) {
+  previewModalIframe.addEventListener('load', () => {
+    if (previewModalLoading) previewModalLoading.classList.add('hidden');
+  });
+}
+
+if (closePreviewModalBtn) {
+  closePreviewModalBtn.addEventListener('click', () => {
+    if (resourcePreviewModal) {
+      resourcePreviewModal.classList.add('hidden');
+      resourcePreviewModal.classList.remove('flex');
+    }
+    if (previewModalIframe) previewModalIframe.src = '';
+  });
+}
 
 // 1. Check for token in URL hash on load
 if (window.location.hash.includes('access_token=')) {

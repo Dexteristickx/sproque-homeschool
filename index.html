@@ -557,6 +557,36 @@
           </div>
         </div>
 
+        <!-- Resource Preview Modal -->
+        <div id="resourcePreviewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div class="glass-card w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 flex flex-col h-[85vh]">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-5 border-b border-white/5 bg-white/[0.02]">
+              <div>
+                <h3 id="previewModalTitle" class="text-lg font-black text-white truncate max-w-lg">Lesson Resource</h3>
+                <p id="previewModalSubject" class="text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-0.5">Subject</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <a id="previewModalExternalLink" href="#" target="_blank" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-slate-300 hover:text-white bg-white/5 border border-white/10 flex items-center gap-1.5 transition-all">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  Open in New Tab
+                </a>
+                <button id="closePreviewModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Iframe Content -->
+            <div class="flex-1 bg-slate-900 relative">
+              <div id="previewModalLoading" class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-900/90 z-10">
+                <div class="h-10 w-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Loading Document Viewer...</p>
+              </div>
+              <iframe id="previewModalIframe" class="w-full h-full border-0" allow="autoplay"></iframe>
+            </div>
+          </div>
+        </div>
+
         <!-- Google Drive Browser Modal -->
         <div id="gdriveBrowserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden animate-fade-in">
           <div class="glass-card rounded-3xl p-8 max-w-lg w-full mx-4 border-white/10 shadow-2xl flex flex-col max-h-[85vh]">

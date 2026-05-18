@@ -1557,6 +1557,16 @@ const driveUploadSection = document.getElementById('driveUploadSection');
 const uploadDriveBtn = document.getElementById('uploadDriveBtn');
 const topicResourceFile = document.getElementById('topicResourceFile');
 
+// Lesson Browser elements
+const browseDriveBtn = document.getElementById('browseDriveBtn');
+const gdriveBrowserModal = document.getElementById('gdriveBrowserModal');
+const closeGdriveBrowserBtn = document.getElementById('closeGdriveBrowserBtn');
+const gdriveBrowserSubtitle = document.getElementById('gdriveBrowserSubtitle');
+const gdriveBrowserLoading = document.getElementById('gdriveBrowserLoading');
+const gdriveBrowserEmpty = document.getElementById('gdriveBrowserEmpty');
+const gdriveBrowserEmptyMsg = document.getElementById('gdriveBrowserEmptyMsg');
+const gdriveFilesContainer = document.getElementById('gdriveFilesContainer');
+
 // 1. Check for token in URL hash on load
 if (window.location.hash.includes('access_token=')) {
   const params = new URLSearchParams(window.location.hash.slice(1));
@@ -1731,7 +1741,160 @@ if (uploadDriveBtn) {
       showToast(err.message, 'error');
     } finally {
       uploadDriveBtn.disabled = false;
-      uploadDriveBtn.textContent = 'Upload & Generate Link';
+      uploadDriveBtn.textContent = 'Upload & Organize';
+    }
+  });
+}
+
+// Lesson Browser Logic (Select Existing Files)
+if (closeGdriveBrowserBtn) {
+  closeGdriveBrowserBtn.addEventListener('click', () => {
+    gdriveBrowserModal.classList.add('hidden');
+    gdriveBrowserModal.classList.remove('flex');
+  });
+}
+
+const showEmptyBrowserState = (subject) => {
+  gdriveBrowserLoading.classList.add('hidden');
+  gdriveFilesContainer.classList.add('hidden');
+  gdriveBrowserEmpty.classList.remove('hidden');
+  gdriveBrowserEmpty.classList.add('flex');
+  gdriveBrowserEmptyMsg.textContent = `Put some files under your Google Drive folder "Lessons > ${subject}" to see and select them here!`;
+};
+
+const getFileIcon = (mimeType) => {
+  if (mimeType.includes('pdf')) {
+    return `<svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`;
+  } else if (mimeType.includes('word') || mimeType.includes('document')) {
+    return `<svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>`;
+  } else if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) {
+    return `<svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8M12 17V3"/></svg>`;
+  } else if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) {
+    return `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>`;
+  } else if (mimeType.includes('image')) {
+    return `<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+  } else {
+    return `<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>`;
+  }
+};
+
+if (browseDriveBtn) {
+  browseDriveBtn.addEventListener('click', async () => {
+    const token = sessionStorage.getItem('gdrive_token');
+    if (!token) return showToast('Not authenticated with Google Drive', 'error');
+
+    const subjectName = topicSubject.value.trim() || 'General';
+
+    // Reset Modal UI
+    gdriveBrowserSubtitle.textContent = `Lessons > ${subjectName}`;
+    gdriveBrowserLoading.classList.remove('hidden');
+    gdriveBrowserEmpty.classList.add('hidden');
+    gdriveFilesContainer.classList.add('hidden');
+    gdriveFilesContainer.innerHTML = '';
+    
+    gdriveBrowserModal.classList.remove('hidden');
+    gdriveBrowserModal.classList.add('flex');
+
+    try {
+      // 1. Resolve 'Lessons' parent folder
+      const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
+
+      // 2. Search for the Subject subfolder inside 'Lessons'
+      const queryStr = `mimeType = 'application/vnd.google-apps.folder' and name = '${subjectName.replace(/'/g, "\\'")}' and '${lessonsFolderId}' in parents and trashed = false`;
+      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)`;
+      const searchRes = await fetch(searchUrl, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!searchRes.ok) throw new Error(`Failed to search for folder "${subjectName}"`);
+
+      const searchData = await searchRes.json();
+      if (!searchData.files || searchData.files.length === 0) {
+        showEmptyBrowserState(subjectName);
+        return;
+      }
+
+      const subjectFolderId = searchData.files[0].id;
+
+      // 3. Query files inside the resolved subject subfolder
+      const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${subjectFolderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name`;
+      const filesRes = await fetch(filesUrl, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!filesRes.ok) throw new Error('Failed to retrieve lesson files from folder');
+
+      const filesData = await filesRes.json();
+      if (!filesData.files || filesData.files.length === 0) {
+        showEmptyBrowserState(subjectName);
+        return;
+      }
+
+      // 4. Render files!
+      gdriveBrowserLoading.classList.add('hidden');
+      gdriveFilesContainer.classList.remove('hidden');
+      
+      filesData.files.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/10 transition-all cursor-pointer group';
+        
+        li.innerHTML = `
+          <div class="flex items-center gap-3.5 min-w-0 flex-1">
+            <div class="flex-shrink-0 p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-all">
+              ${getFileIcon(file.mimeType)}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">${file.name}</p>
+              <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">${file.mimeType.split('/').pop().toUpperCase()}</p>
+            </div>
+          </div>
+          <svg class="w-5 h-5 text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        `;
+
+        li.addEventListener('click', async () => {
+          // Disable row while selecting
+          li.classList.add('pointer-events-none', 'opacity-65');
+          const titleEl = li.querySelector('p');
+          const originalTitle = titleEl.textContent;
+          titleEl.textContent = 'Connecting...';
+
+          try {
+            // Make public-viewable so student can open
+            await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                role: 'reader',
+                type: 'anyone'
+              })
+            });
+
+            // Fill input field
+            topicResourceLink.value = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+            showToast(`Selected file: ${file.name}!`, 'success');
+            
+            // Close modal
+            gdriveBrowserModal.classList.add('hidden');
+            gdriveBrowserModal.classList.remove('flex');
+          } catch (err) {
+            console.error(err);
+            titleEl.textContent = originalTitle;
+            li.classList.remove('pointer-events-none', 'opacity-65');
+            showToast('Failed to select file. Please check permissions.', 'error');
+          }
+        });
+
+        gdriveFilesContainer.appendChild(li);
+      });
+
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, 'error');
+      gdriveBrowserModal.classList.add('hidden');
+      gdriveBrowserModal.classList.remove('flex');
     }
   });
 }

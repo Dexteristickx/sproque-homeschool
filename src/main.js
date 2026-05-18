@@ -1138,6 +1138,76 @@ if (tabButtons) {
   }));
 }
 
+// Standalone AI Educational Planner Engine
+const runAIAssist = (title, subject) => {
+  const cleanSubject = (subject || 'General').toLowerCase().trim();
+  
+  // Subject-specific educational frameworks
+  const frameworks = {
+    science: {
+      intro: `Explore the foundational concepts of "${title}" in scientific inquiry.`,
+      objectives: [
+        `Understand the core biological, chemical, or physical mechanisms governing ${title}.`,
+        `Investigate real-world systems, cycles, and phenomena related to this topic.`,
+        `Develop critical scientific thinking and laboratory observation skills.`
+      ],
+      activities: `Interactive science experiment/simulation, diagram labeling, and a concept review quiz.`,
+      legacy: `Study guide on ${title}, with focus on lab procedures and vocabulary terms.`
+    },
+    math: {
+      intro: `Master the mathematical principles and problem-solving techniques for "${title}".`,
+      objectives: [
+        `Identify and apply the core formulas, equations, and rules of ${title}.`,
+        `Solve multi-step equations and apply mathematical models to practical challenges.`,
+        `Build logical reasoning, analytical analysis, and deductive proof capabilities.`
+      ],
+      activities: `Practice worksheet problems, collaborative whiteboard solving, and a digital test.`,
+      legacy: `Homework packet assignment for ${title}, tracking conceptual mastery metrics.`
+    },
+    history: {
+      intro: `Analyze the historical significance, key figures, and cultural impacts of "${title}".`,
+      objectives: [
+        `Trace the timeline of events, origins, and long-term consequences of this period.`,
+        `Compare and contrast primary source documents and distinct socio-political viewpoints.`,
+        `Understand the relevance of ${title} to modern democratic systems and global culture.`
+      ],
+      activities: `Primary source document review, creative timeline mapping, and group discussion.`,
+      legacy: `Reading review for ${title}, comparing primary resources with historical summaries.`
+    },
+    english: {
+      intro: `Examine the literary elements, grammatical structures, and vocabulary of "${title}".`,
+      objectives: [
+        `Analyze theme, character arcs, or stylistic devices within the studied texts.`,
+        `Apply advanced composition, syntax structure, and narrative techniques.`,
+        `Enhance critical textual analysis, active reading comprehension, and presentation skills.`
+      ],
+      activities: `Creative writing prompt, comparative textual analysis, and peer editing workshop.`,
+      legacy: `Essay outline and writing checklist for ${title}, analyzing vocabulary and grammar structure.`
+    }
+  };
+
+  // Select matching framework or fallback
+  let framework = frameworks.science; // Default fallback
+  if (cleanSubject.includes('math') || cleanSubject.includes('algebra') || cleanSubject.includes('calculus') || cleanSubject.includes('geometry') || cleanSubject.includes('arithmetic')) {
+    framework = frameworks.math;
+  } else if (cleanSubject.includes('hist') || cleanSubject.includes('social') || cleanSubject.includes('civic') || cleanSubject.includes('geography')) {
+    framework = frameworks.history;
+  } else if (cleanSubject.includes('eng') || cleanSubject.includes('lit') || cleanSubject.includes('lang') || cleanSubject.includes('read') || cleanSubject.includes('writ')) {
+    framework = frameworks.english;
+  } else if (cleanSubject.includes('sci') || cleanSubject.includes('bio') || cleanSubject.includes('chem') || cleanSubject.includes('phys')) {
+    framework = frameworks.science;
+  }
+
+  // 1. Build beautiful, rich objectives
+  const objectivesText = `${framework.intro}\n\n🎯 Learning Objectives:\n1. ${framework.objectives[0]}\n2. ${framework.objectives[1]}\n3. ${framework.objectives[2]}`;
+  
+  // 2. Build beautiful, rich legacy notes / activities
+  const legacyText = `💡 Suggested Lesson Activities:\n• ${framework.activities}\n\n📝 Legacy Notes & Teaching Checklist:\n• ${framework.legacy}`;
+
+  if (topicDescription) topicDescription.value = objectivesText;
+  if (topicResources) topicResources.value = legacyText;
+};
+
 // Master Logic: AI Assist
 if (aiAssistBtn) {
   aiAssistBtn.addEventListener('click', async () => {
@@ -1153,67 +1223,9 @@ if (aiAssistBtn) {
     const originalText = aiAssistBtn.innerHTML;
     aiAssistBtn.innerHTML = '<span class="animate-pulse italic">Consulting AI Scholar...</span>';
     
-    // Dynamic Educational Planner Engine
     setTimeout(() => {
       try {
-        const cleanSubject = subject.toLowerCase().trim();
-        
-        // Subject-specific educational frameworks
-        const frameworks = {
-          science: {
-            intro: `Explore the foundational concepts of "${title}" in scientific inquiry.`,
-            objectives: [
-              `Understand the core biological, chemical, or physical mechanisms governing ${title}.`,
-              `Investigate real-world systems, cycles, and phenomena related to this topic.`,
-              `Develop critical scientific thinking and laboratory observation skills.`
-            ],
-            activities: `Interactive science experiment/simulation, diagram labeling, and a concept review quiz.`
-          },
-          math: {
-            intro: `Master the mathematical principles and problem-solving techniques for "${title}".`,
-            objectives: [
-              `Identify and apply the core formulas, equations, and rules of ${title}.`,
-              `Solve multi-step equations and apply mathematical models to practical challenges.`,
-              `Build logical reasoning, analytical analysis, and deductive proof capabilities.`
-            ],
-            activities: `Practice worksheet problems, collaborative whiteboard solving, and a digital test.`
-          },
-          history: {
-            intro: `Analyze the historical significance, key figures, and cultural impacts of "${title}".`,
-            objectives: [
-              `Trace the timeline of events, origins, and long-term consequences of this period.`,
-              `Compare and contrast primary source documents and distinct socio-political viewpoints.`,
-              `Understand the relevance of ${title} to modern democratic systems and global culture.`
-            ],
-            activities: `Primary source document review, creative timeline mapping, and group discussion.`
-          },
-          english: {
-            intro: `Examine the literary elements, grammatical structures, and vocabulary of "${title}".`,
-            objectives: [
-              `Analyze theme, character arcs, or stylistic devices within the studied texts.`,
-              `Apply advanced composition, syntax structure, and narrative techniques.`,
-              `Enhance critical textual analysis, active reading comprehension, and presentation skills.`
-            ],
-            activities: `Creative writing prompt, comparative textual analysis, and peer editing workshop.`
-          }
-        };
-
-        // Select matching framework or fallback
-        let framework = frameworks.science; // Default fallback
-        if (cleanSubject.includes('math') || cleanSubject.includes('algebra') || cleanSubject.includes('calculus') || cleanSubject.includes('geometry') || cleanSubject.includes('arithmetic')) {
-          framework = frameworks.math;
-        } else if (cleanSubject.includes('hist') || cleanSubject.includes('social') || cleanSubject.includes('civic') || cleanSubject.includes('geography')) {
-          framework = frameworks.history;
-        } else if (cleanSubject.includes('eng') || cleanSubject.includes('lit') || cleanSubject.includes('lang') || cleanSubject.includes('read') || cleanSubject.includes('writ')) {
-          framework = frameworks.english;
-        } else if (cleanSubject.includes('sci') || cleanSubject.includes('bio') || cleanSubject.includes('chem') || cleanSubject.includes('phys')) {
-          framework = frameworks.science;
-        }
-
-        // Build a beautiful, rich educational description
-        const result = `${framework.intro}\n\n🎯 Learning Objectives:\n1. ${framework.objectives[0]}\n2. ${framework.objectives[1]}\n3. ${framework.objectives[2]}\n\n🛠 Suggested Activities:\n• ${framework.activities}`;
-        
-        topicDescription.value = result;
+        runAIAssist(title, subject);
         showToast('AI lesson plan generated!', 'success');
       } catch (err) {
         console.error(err);
@@ -1222,7 +1234,7 @@ if (aiAssistBtn) {
         aiAssistBtn.disabled = false;
         aiAssistBtn.innerHTML = originalText;
       }
-    }, 1200);
+    }, 800);
   });
 }
 
@@ -1847,7 +1859,24 @@ if (uploadDriveBtn) {
 
       // 6. Fill the link
       topicResourceLink.value = `https://drive.google.com/file/d/${fileId}/view`;
-      showToast(`File uploaded successfully to Lessons > ${subjectName}!`, 'success');
+      
+      // 7. Clean filename to auto-populate Topic Title
+      const cleanTitle = file.name
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+      if (topicTitle) topicTitle.value = cleanTitle;
+      
+      // 8. Resolve Subject
+      const resolvedSubject = topicSubject.value.trim() || subjectName || 'General';
+      if (topicSubject && !topicSubject.value.trim()) {
+        topicSubject.value = resolvedSubject === 'General' ? '' : resolvedSubject;
+      }
+
+      // 9. Trigger AI Assist to automatically write Objectives and Legacy Notes!
+      runAIAssist(cleanTitle, resolvedSubject);
+
+      showToast(`Uploaded "${file.name}" & auto-generated curriculum!`, 'success');
       topicResourceFile.value = ''; // clear file input
 
     } catch (err) {
@@ -1994,9 +2023,26 @@ if (browseDriveBtn) {
               console.warn('Sharing permission update failed:', permErr);
             }
 
-            // Fill input field (this should ALWAYS run!)
+            // 1. Fill input field (this should ALWAYS run!)
             topicResourceLink.value = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
-            showToast(`Selected file: ${file.name}!`, 'success');
+            
+            // 2. Clean filename to auto-populate Topic Title
+            const cleanTitle = file.name
+              .replace(/\.[^/.]+$/, "")
+              .replace(/[_-]/g, " ")
+              .replace(/\b\w/g, c => c.toUpperCase());
+            if (topicTitle) topicTitle.value = cleanTitle;
+            
+            // 3. Resolve Subject subfolder
+            const resolvedSubject = topicSubject.value.trim() || subjectName || 'General';
+            if (topicSubject && !topicSubject.value.trim()) {
+              topicSubject.value = resolvedSubject === 'General' ? '' : resolvedSubject;
+            }
+
+            // 4. Trigger AI assist to generate Objectives and Legacy Notes automatically!
+            runAIAssist(cleanTitle, resolvedSubject);
+            
+            showToast(`Attached "${file.name}" & auto-generated curriculum!`, 'success');
             
             // Close modal
             gdriveBrowserModal.classList.add('hidden');

@@ -1621,12 +1621,15 @@ if (googleLoginBtn) {
 
 // Helper to find or create a folder in Google Drive (Option 1: Smart Organizer)
 const findOrCreateFolder = async (token, folderName, parentId = null) => {
-  let queryStr = `mimeType = 'application/vnd.google-apps.folder' and name = '${folderName.replace(/'/g, "\\'")}' and trashed = false`;
+  const sanitizedName = folderName.replace(/'/g, "\\'");
+  const nameQuery = `(name = '${sanitizedName}' or name = '${sanitizedName.toLowerCase()}' or name = '${sanitizedName.toUpperCase()}')`;
+  
+  let queryStr = `mimeType = 'application/vnd.google-apps.folder' and ${nameQuery} and trashed = false`;
   if (parentId) {
     queryStr += ` and '${parentId}' in parents`;
   }
   
-  const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)`;
+  const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)&includeItemsFromAllDrives=true&supportsAllDrives=true`;
   const searchRes = await fetch(searchUrl, {
     method: 'GET',
     headers: {
@@ -1640,10 +1643,12 @@ const findOrCreateFolder = async (token, folderName, parentId = null) => {
   
   const searchData = await searchRes.json();
   if (searchData.files && searchData.files.length > 0) {
+    console.log(`Resolved existing folder: ${folderName} -> ID: ${searchData.files[0].id}`);
     return searchData.files[0].id;
   }
   
   // Create if not found
+  console.log(`Folder not found. Creating folder: ${folderName}`);
   const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
     method: 'POST',
     headers: {
@@ -1800,8 +1805,9 @@ if (browseDriveBtn) {
       const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
 
       // 2. Search for the Subject subfolder inside 'Lessons'
-      const queryStr = `mimeType = 'application/vnd.google-apps.folder' and name = '${subjectName.replace(/'/g, "\\'")}' and '${lessonsFolderId}' in parents and trashed = false`;
-      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)`;
+      const sanitizedSubject = subjectName.replace(/'/g, "\\'");
+      const queryStr = `mimeType = 'application/vnd.google-apps.folder' and (name = '${sanitizedSubject}' or name = '${sanitizedSubject.toLowerCase()}' or name = '${sanitizedSubject.toUpperCase()}') and '${lessonsFolderId}' in parents and trashed = false`;
+      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)&includeItemsFromAllDrives=true&supportsAllDrives=true`;
       const searchRes = await fetch(searchUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1817,7 +1823,7 @@ if (browseDriveBtn) {
       const subjectFolderId = searchData.files[0].id;
 
       // 3. Query files inside the resolved subject subfolder
-      const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${subjectFolderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name`;
+      const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${subjectFolderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
       const filesRes = await fetch(filesUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
       });

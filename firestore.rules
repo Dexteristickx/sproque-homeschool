@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if the authenticated user owns the document
+    function isOwner(resource) {
+      return resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Helper function to check if the incoming write has the correct ownerId
+    function incomingOwnerMatches() {
+      return request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // Rules for Students collection
+    match /students/{studentId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource);
+      allow create: if isAuthenticated() && incomingOwnerMatches();
+      allow update: if isAuthenticated() && isOwner(resource) && incomingOwnerMatches();
+    }
+
+    // Rules for Topics collection (Curriculum)
+    match /topics/{topicId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource);
+      allow create: if isAuthenticated() && incomingOwnerMatches();
+      allow update: if isAuthenticated() && isOwner(resource) && incomingOwnerMatches();
+    }
+
+    // Rules for Sessions collection (Taught / Tested logs)
+    match /sessions/{sessionId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource);
+      allow create: if isAuthenticated() && incomingOwnerMatches();
+      allow update: if isAuthenticated() && isOwner(resource) && incomingOwnerMatches();
+    }
+
+    // Rules for Quizzes collection
+    match /quizzes/{quizId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource);
+      allow create: if isAuthenticated() && incomingOwnerMatches();
+      allow update: if isAuthenticated() && isOwner(resource) && incomingOwnerMatches();
+    }
+
+    // Rules for Announcements collection
+    match /announcements/{announcementId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource);
+      allow create: if isAuthenticated() && incomingOwnerMatches();
+      allow update: if isAuthenticated() && isOwner(resource) && incomingOwnerMatches();
+    }
+  }
+}

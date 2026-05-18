@@ -18,7 +18,8 @@ import {
   onSnapshot,
   query,
   orderBy,
-  limit
+  limit,
+  where
 } from 'firebase/firestore';
 
 /* ---------------------------------------------

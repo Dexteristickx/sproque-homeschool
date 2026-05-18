@@ -524,6 +524,25 @@
             </div>
           </div>
         </div>
+
+        <!-- Confirm Modal -->
+        <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden animate-fade-in">
+          <div class="glass-card rounded-3xl p-8 max-w-sm w-full mx-4 text-center border-white/10 shadow-2xl">
+            <div class="flex flex-col items-center gap-4 mb-6">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h4 id="confirmTitle" class="text-2xl font-black text-white" style="font-family: 'Playfair Display', serif;">Confirm Action</h4>
+            </div>
+            <p id="confirmMessage" class="text-slate-300 font-medium leading-relaxed mb-8 text-sm"></p>
+            <div class="flex gap-3">
+              <button id="confirmCancel" class="flex-1 py-3 rounded-2xl border border-white/10 text-slate-300 font-bold hover:bg-white/5 hover:text-white transition-all cursor-pointer">Go Back</button>
+              <button id="confirmAccept" class="flex-1 btn-accent py-3 cursor-pointer">Confirm</button>
+            </div>
+          </div>
+        </div>
       </main>
 
   <script type="module" src="/src/main.js"></script>

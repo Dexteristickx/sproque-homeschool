@@ -257,8 +257,22 @@
                   <textarea id="topicResources" rows="2" placeholder="Private notes..." class="input-field resize-none"></textarea>
                 </div>
                 <div class="space-y-1.5">
-                  <label for="topicResourceLink" class="text-xs font-black uppercase tracking-wider text-primary-500 ml-1">External Resource Link</label>
-                  <input id="topicResourceLink" type="url" placeholder="Paste Google Drive or YouTube link here" class="input-field border-primary-100" />
+                  <label for="topicResourceLink" class="text-xs font-black uppercase tracking-wider text-emerald-500 ml-1">External Resource Link</label>
+                  <input id="topicResourceLink" type="url" placeholder="Paste Google Drive or YouTube link here" class="input-field border-emerald-500/20" />
+                </div>
+
+                <div class="space-y-1.5 p-3 bg-white/5 rounded-2xl border border-white/10 mt-2">
+                  <label class="text-xs font-black uppercase tracking-wider text-slate-300 ml-1">Upload to Google Drive</label>
+                  <div class="flex flex-col gap-2">
+                    <button type="button" id="googleLoginBtn" class="btn-ghost flex items-center justify-center gap-2 py-2 text-xs border border-white/10 w-full hover:bg-white/10">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.36,22 12.22,22C17.74,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z"/></svg>
+                      Connect Google Drive
+                    </button>
+                    <div id="driveUploadSection" class="hidden flex-col gap-2">
+                      <input id="topicResourceFile" type="file" class="text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer w-full" />
+                      <button type="button" id="uploadDriveBtn" class="btn-primary py-2 text-xs w-full">Upload & Generate Link</button>
+                    </div>
+                  </div>
                 </div>
                 <div class="space-y-3">
                   <label class="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Assign Students</label>

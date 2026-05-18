@@ -1548,9 +1548,136 @@ document.addEventListener('click', async e => {
 confirmAccept.addEventListener('click', () => closeConfirm(true));
 confirmCancel.addEventListener('click', () => closeConfirm(false));
 
+/* ---------------------------------------------
+   7. Google Drive Integration (OAuth)
+   --------------------------------------------- */
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+const driveUploadSection = document.getElementById('driveUploadSection');
+const uploadDriveBtn = document.getElementById('uploadDriveBtn');
+const topicResourceFile = document.getElementById('topicResourceFile');
+
+// 1. Check for token in URL hash on load
+if (window.location.hash.includes('access_token=')) {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const token = params.get('access_token');
+  if (token) {
+    sessionStorage.setItem('gdrive_token', token);
+    history.replaceState(null, '', window.location.pathname);
+    showToast('Google Drive connected!', 'success');
+  }
+}
+
+// Update UI based on token
+const updateDriveUI = () => {
+  if (!googleLoginBtn) return;
+  const token = sessionStorage.getItem('gdrive_token');
+  if (token) {
+    googleLoginBtn.classList.add('hidden');
+    driveUploadSection.classList.remove('hidden');
+    driveUploadSection.classList.add('flex');
+  } else {
+    googleLoginBtn.classList.remove('hidden');
+    driveUploadSection.classList.add('hidden');
+    driveUploadSection.classList.remove('flex');
+  }
+};
+
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener('click', () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+    
+    if (!clientId || !redirectUri) {
+      showToast('Missing Google Client ID or Redirect URI in env vars', 'error');
+      return;
+    }
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${clientId}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&response_type=token` +
+      `&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file')}` +
+      `&prompt=consent`;
+      
+    window.location.href = authUrl;
+  });
+}
+
+if (uploadDriveBtn) {
+  uploadDriveBtn.addEventListener('click', async () => {
+    const file = topicResourceFile.files[0];
+    if (!file) return showToast('Please select a file to upload', 'warn');
+
+    const token = sessionStorage.getItem('gdrive_token');
+    if (!token) return showToast('Not authenticated with Google Drive', 'error');
+
+    uploadDriveBtn.disabled = true;
+    uploadDriveBtn.innerHTML = '<span class="animate-pulse">Uploading...</span>';
+
+    try {
+      const metadata = {
+        name: file.name,
+        mimeType: file.type || 'application/octet-stream',
+      };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', file);
+
+      // Upload file
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: form
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          sessionStorage.removeItem('gdrive_token');
+          updateDriveUI();
+          throw new Error('Google Drive session expired. Please reconnect.');
+        }
+        throw new Error('Failed to upload file to Google Drive');
+      }
+
+      const data = await res.json();
+      const fileId = data.id;
+
+      // Make public reader
+      await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          role: 'reader',
+          type: 'anyone'
+        })
+      });
+
+      // Fill the link
+      topicResourceLink.value = `https://drive.google.com/file/d/${fileId}/view`;
+      showToast('File uploaded to Google Drive!', 'success');
+      topicResourceFile.value = ''; // clear file input
+
+    } catch (err) {
+      console.error(err);
+      showToast(err.message, 'error');
+    } finally {
+      uploadDriveBtn.disabled = false;
+      uploadDriveBtn.textContent = 'Upload & Generate Link';
+    }
+  });
+}
+
 // Init
 updateAuthUI();
+updateDriveUI();
 setActiveTab('students');
 topicDate.value = new Date().toISOString().split('T')[0];
 sessionDate.value = new Date().toISOString().split('T')[0];
 attendanceDateFilter.value = new Date().toISOString().split('T')[0];
+

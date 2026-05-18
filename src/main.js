@@ -1692,12 +1692,29 @@ const previewModalIframe = document.getElementById('previewModalIframe');
 window.viewResource = (url, title, subject) => {
   if (!resourcePreviewModal || !previewModalIframe) return;
 
-  // Resolve preview URL for Google Drive files
+  // Master Parser for Google Workspace document views (stripping editor controls)
   let embedUrl = url;
-  const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (driveMatch) {
-    const fileId = driveMatch[1];
-    embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+  
+  if (url.includes('/document/d/')) {
+    const docMatch = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+    if (docMatch) {
+      embedUrl = `https://docs.google.com/document/d/${docMatch[1]}/preview`;
+    }
+  } else if (url.includes('/presentation/d/')) {
+    const slidesMatch = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+    if (slidesMatch) {
+      embedUrl = `https://docs.google.com/presentation/d/${slidesMatch[1]}/preview`;
+    }
+  } else if (url.includes('/spreadsheets/d/')) {
+    const sheetsMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (sheetsMatch) {
+      embedUrl = `https://docs.google.com/spreadsheets/d/${sheetsMatch[1]}/preview`;
+    }
+  } else {
+    const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      embedUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+    }
   }
 
   // Set UI fields

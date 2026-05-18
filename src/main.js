@@ -1653,6 +1653,7 @@ confirmCancel.addEventListener('click', () => closeConfirm(false));
    7. Google Drive Integration (OAuth)
    --------------------------------------------- */
 const googleLoginBtn = document.getElementById('googleLoginBtn');
+const googleLogoutBtn = document.getElementById('googleLogoutBtn');
 const driveUploadSection = document.getElementById('driveUploadSection');
 const uploadDriveBtn = document.getElementById('uploadDriveBtn');
 const topicResourceFile = document.getElementById('topicResourceFile');
@@ -1716,6 +1717,14 @@ if (googleLoginBtn) {
     
     console.log('Redirecting to Google OAuth URL:', authUrl);
     window.location.href = authUrl;
+  });
+}
+
+if (googleLogoutBtn) {
+  googleLogoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('gdrive_token');
+    updateDriveUI();
+    showToast('Google Drive disconnected!', 'info');
   });
 }
 

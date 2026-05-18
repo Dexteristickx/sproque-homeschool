@@ -1601,13 +1601,59 @@ if (googleLoginBtn) {
       `client_id=${clientId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=token` +
-      `&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file')}` +
+      `&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive')}` +
       `&prompt=consent`;
     
     console.log('Redirecting to Google OAuth URL:', authUrl);
     window.location.href = authUrl;
   });
 }
+
+// Helper to find or create a folder in Google Drive (Option 1: Smart Organizer)
+const findOrCreateFolder = async (token, folderName, parentId = null) => {
+  let queryStr = `mimeType = 'application/vnd.google-apps.folder' and name = '${folderName.replace(/'/g, "\\'")}' and trashed = false`;
+  if (parentId) {
+    queryStr += ` and '${parentId}' in parents`;
+  }
+  
+  const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)`;
+  const searchRes = await fetch(searchUrl, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  if (!searchRes.ok) {
+    throw new Error(`Failed to search for folder "${folderName}"`);
+  }
+  
+  const searchData = await searchRes.json();
+  if (searchData.files && searchData.files.length > 0) {
+    return searchData.files[0].id;
+  }
+  
+  // Create if not found
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: parentId ? [parentId] : []
+    })
+  });
+  
+  if (!createRes.ok) {
+    throw new Error(`Failed to create folder "${folderName}"`);
+  }
+  
+  const createData = await createRes.json();
+  return createData.id;
+};
 
 if (uploadDriveBtn) {
   uploadDriveBtn.addEventListener('click', async () => {
@@ -1617,20 +1663,31 @@ if (uploadDriveBtn) {
     const token = sessionStorage.getItem('gdrive_token');
     if (!token) return showToast('Not authenticated with Google Drive', 'error');
 
+    // Get the subject name to organize the folder
+    const subjectName = topicSubject.value.trim() || 'General';
+
     uploadDriveBtn.disabled = true;
-    uploadDriveBtn.innerHTML = '<span class="animate-pulse">Uploading...</span>';
+    uploadDriveBtn.innerHTML = '<span class="animate-pulse">Organizing folders & uploading...</span>';
 
     try {
+      // 1. Resolve 'Lessons' parent folder
+      const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
+
+      // 2. Resolve matching Subject subfolder inside 'Lessons'
+      const subjectFolderId = await findOrCreateFolder(token, subjectName, lessonsFolderId);
+
+      // 3. Prepare file metadata with parent folder set to the subject folder
       const metadata = {
         name: file.name,
         mimeType: file.type || 'application/octet-stream',
+        parents: [subjectFolderId]
       };
 
       const form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       form.append('file', file);
 
-      // Upload file
+      // 4. Upload file into the resolved folder path
       const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
         method: 'POST',
         headers: {
@@ -1651,7 +1708,7 @@ if (uploadDriveBtn) {
       const data = await res.json();
       const fileId = data.id;
 
-      // Make public reader
+      // 5. Make public reader
       await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
         method: 'POST',
         headers: {
@@ -1664,9 +1721,9 @@ if (uploadDriveBtn) {
         })
       });
 
-      // Fill the link
+      // 6. Fill the link
       topicResourceLink.value = `https://drive.google.com/file/d/${fileId}/view`;
-      showToast('File uploaded to Google Drive!', 'success');
+      showToast(`File uploaded successfully to Lessons > ${subjectName}!`, 'success');
       topicResourceFile.value = ''; // clear file input
 
     } catch (err) {

@@ -1865,20 +1865,27 @@ if (browseDriveBtn) {
           titleEl.textContent = 'Connecting...';
 
           try {
-            // Make public-viewable so student can open
-            await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                role: 'reader',
-                type: 'anyone'
-              })
-            });
+            // Try to make public-viewable, but don't block selection if we don't have permission!
+            try {
+              const permRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  role: 'reader',
+                  type: 'anyone'
+                })
+              });
+              if (!permRes.ok) {
+                console.warn('Could not update sharing permissions for file. It might be owned by another account.');
+              }
+            } catch (permErr) {
+              console.warn('Sharing permission update failed:', permErr);
+            }
 
-            // Fill input field
+            // Fill input field (this should ALWAYS run!)
             topicResourceLink.value = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
             showToast(`Selected file: ${file.name}!`, 'success');
             

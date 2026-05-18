@@ -1735,6 +1735,30 @@ if (previewModalIframe) {
   });
 }
 
+// Fullscreen Toggle logic
+const toggleFullscreenBtn = document.getElementById('toggleFullscreenBtn');
+const fullscreenIconExpand = document.getElementById('fullscreenIconExpand');
+const fullscreenIconCollapse = document.getElementById('fullscreenIconCollapse');
+const previewModalContainer = resourcePreviewModal ? resourcePreviewModal.querySelector('.glass-card') : null;
+
+let isFullscreen = false;
+
+if (toggleFullscreenBtn && previewModalContainer) {
+  toggleFullscreenBtn.addEventListener('click', () => {
+    isFullscreen = !isFullscreen;
+    
+    if (isFullscreen) {
+      previewModalContainer.className = "glass-card w-full max-w-full h-screen rounded-none overflow-hidden border-0 flex flex-col";
+      fullscreenIconExpand.classList.add('hidden');
+      fullscreenIconCollapse.classList.remove('hidden');
+    } else {
+      previewModalContainer.className = "glass-card w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 flex flex-col h-[85vh]";
+      fullscreenIconExpand.classList.remove('hidden');
+      fullscreenIconCollapse.classList.add('hidden');
+    }
+  });
+}
+
 if (closePreviewModalBtn) {
   closePreviewModalBtn.addEventListener('click', () => {
     if (resourcePreviewModal) {
@@ -1742,6 +1766,16 @@ if (closePreviewModalBtn) {
       resourcePreviewModal.classList.remove('flex');
     }
     if (previewModalIframe) previewModalIframe.src = '';
+    
+    // Reset fullscreen state on close
+    isFullscreen = false;
+    if (previewModalContainer) {
+      previewModalContainer.className = "glass-card w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 flex flex-col h-[85vh]";
+    }
+    if (fullscreenIconExpand && fullscreenIconCollapse) {
+      fullscreenIconExpand.classList.remove('hidden');
+      fullscreenIconCollapse.classList.add('hidden');
+    }
   });
 }
 

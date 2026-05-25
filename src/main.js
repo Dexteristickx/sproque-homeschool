@@ -2093,7 +2093,8 @@ const listLessonsFilesInFolder = async (token, folderId, folderName) => {
   if (gdriveBrowserBackBtn) gdriveBrowserBackBtn.classList.remove('hidden');
 
   try {
-    const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
+    const filesQuery = `'${folderId}' in parents and trashed = false`;
+    const filesUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(filesQuery)}&fields=files(id,name,mimeType,webViewLink)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
     const res = await fetch(filesUrl, {
       headers: { 'Authorization': `Bearer ${token}` }
     });

@@ -591,9 +591,14 @@
         <div id="gdriveBrowserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden animate-fade-in">
           <div class="glass-card rounded-3xl p-8 max-w-lg w-full mx-4 border-white/10 shadow-2xl flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-6">
-              <div>
-                <h4 id="gdriveBrowserTitle" class="text-2xl font-black text-white" style="font-family: 'Playfair Display', serif;">Lesson Browser</h4>
-                <p id="gdriveBrowserSubtitle" class="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">Lessons > General</p>
+              <div class="flex items-center gap-3">
+                <button id="gdriveBrowserBackBtn" class="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-colors hidden cursor-pointer" title="Back to Folders">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                </button>
+                <div>
+                  <h4 id="gdriveBrowserTitle" class="text-2xl font-black text-white" style="font-family: 'Playfair Display', serif;">Lesson Browser</h4>
+                  <p id="gdriveBrowserSubtitle" class="text-xs font-black text-emerald-500 uppercase tracking-widest mt-1">Lessons</p>
+                </div>
               </div>
               <button id="closeGdriveBrowserBtn" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

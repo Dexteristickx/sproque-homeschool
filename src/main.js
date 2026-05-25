@@ -1674,6 +1674,7 @@ const topicResourceFile = document.getElementById('topicResourceFile');
 const browseDriveBtn = document.getElementById('browseDriveBtn');
 const gdriveBrowserModal = document.getElementById('gdriveBrowserModal');
 const closeGdriveBrowserBtn = document.getElementById('closeGdriveBrowserBtn');
+const gdriveBrowserBackBtn = document.getElementById('gdriveBrowserBackBtn');
 const gdriveBrowserSubtitle = document.getElementById('gdriveBrowserSubtitle');
 const gdriveBrowserLoading = document.getElementById('gdriveBrowserLoading');
 const gdriveBrowserEmpty = document.getElementById('gdriveBrowserEmpty');
@@ -1996,12 +1997,14 @@ if (closeGdriveBrowserBtn) {
   });
 }
 
-const showEmptyBrowserState = (subject) => {
+const showEmptyBrowserState = (subject, isFolder = false) => {
   gdriveBrowserLoading.classList.add('hidden');
   gdriveFilesContainer.classList.add('hidden');
   gdriveBrowserEmpty.classList.remove('hidden');
   gdriveBrowserEmpty.classList.add('flex');
-  gdriveBrowserEmptyMsg.textContent = `Put some files under your Google Drive folder "Lessons > ${subject}" to see and select them here!`;
+  gdriveBrowserEmptyMsg.textContent = isFolder 
+    ? `Create some subfolders inside your "Lessons" folder on Google Drive to see them here!`
+    : `Put some files under your Google Drive folder "Lessons > ${subject}" to see and select them here!`;
 };
 
 const getFileIcon = (mimeType) => {
@@ -2020,148 +2023,222 @@ const getFileIcon = (mimeType) => {
   }
 };
 
+const listLessonsFolders = async (token) => {
+  gdriveBrowserSubtitle.textContent = 'Lessons';
+  gdriveBrowserLoading.classList.remove('hidden');
+  gdriveBrowserEmpty.classList.add('hidden');
+  gdriveFilesContainer.classList.add('hidden');
+  gdriveFilesContainer.innerHTML = '';
+  if (gdriveBrowserBackBtn) gdriveBrowserBackBtn.classList.add('hidden');
+
+  try {
+    const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
+
+    // Query folders inside Lessons
+    const queryStr = `mimeType = 'application/vnd.google-apps.folder' and '${lessonsFolderId}' in parents and trashed = false`;
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
+    const res = await fetch(searchUrl, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Failed to retrieve subject folders from Google Drive');
+
+    const data = await res.json();
+    if (!data.files || data.files.length === 0) {
+      showEmptyBrowserState('Lessons', true);
+      return;
+    }
+
+    gdriveBrowserLoading.classList.hidden = true;
+    gdriveBrowserLoading.classList.add('hidden');
+    gdriveFilesContainer.classList.remove('hidden');
+
+    data.files.forEach(folder => {
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/10 transition-all cursor-pointer group';
+      
+      li.innerHTML = `
+        <div class="flex items-center gap-3.5 min-w-0 flex-1">
+          <div class="flex-shrink-0 p-2 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">${folder.name}</p>
+            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">FOLDER</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      `;
+
+      li.addEventListener('click', () => {
+        listLessonsFilesInFolder(token, folder.id, folder.name);
+      });
+
+      gdriveFilesContainer.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast(err.message, 'error');
+    gdriveBrowserLoading.classList.add('hidden');
+  }
+};
+
+const listLessonsFilesInFolder = async (token, folderId, folderName) => {
+  gdriveBrowserSubtitle.textContent = `Lessons > ${folderName}`;
+  gdriveBrowserLoading.classList.remove('hidden');
+  gdriveBrowserEmpty.classList.add('hidden');
+  gdriveFilesContainer.classList.add('hidden');
+  gdriveFilesContainer.innerHTML = '';
+  if (gdriveBrowserBackBtn) gdriveBrowserBackBtn.classList.remove('hidden');
+
+  try {
+    const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
+    const res = await fetch(filesUrl, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error(`Failed to retrieve files for subject "${folderName}"`);
+
+    const data = await res.json();
+    if (!data.files || data.files.length === 0) {
+      showEmptyBrowserState(folderName);
+      return;
+    }
+
+    gdriveBrowserLoading.classList.add('hidden');
+    gdriveFilesContainer.classList.remove('hidden');
+
+    data.files.forEach(file => {
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/10 transition-all cursor-pointer group';
+      
+      li.innerHTML = `
+        <div class="flex items-center gap-3.5 min-w-0 flex-1">
+          <div class="flex-shrink-0 p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-all">
+            ${getFileIcon(file.mimeType)}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">${file.name}</p>
+            <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">${file.mimeType.split('/').pop().toUpperCase()}</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      `;
+
+      li.addEventListener('click', async () => {
+        li.classList.add('pointer-events-none', 'opacity-65');
+        const titleEl = li.querySelector('p');
+        const originalTitle = titleEl.textContent;
+        titleEl.textContent = 'Connecting...';
+
+        try {
+          try {
+            await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                role: 'reader',
+                type: 'anyone'
+              })
+            });
+          } catch (permErr) {
+            console.warn('Sharing permission update failed:', permErr);
+          }
+
+          // 1. Fill input field
+          topicResourceLink.value = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+          
+          // 2. Clean filename to auto-populate Topic Title
+          const cleanTitle = file.name
+            .replace(/\.[^/.]+$/, "")
+            .replace(/[_-]/g, " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+          if (topicTitle) topicTitle.value = cleanTitle;
+          
+          // 3. Resolve Subject subfolder (auto-map to folderName!)
+          if (topicSubject) topicSubject.value = folderName;
+
+          // 4. Trigger AI assist
+          runAIAssist(cleanTitle, folderName);
+          
+          showToast(`Attached "${file.name}" & auto-generated curriculum!`, 'success');
+          
+          gdriveBrowserModal.classList.add('hidden');
+          gdriveBrowserModal.classList.remove('flex');
+        } catch (err) {
+          console.error(err);
+          titleEl.textContent = originalTitle;
+          li.classList.remove('pointer-events-none', 'opacity-65');
+          showToast('Failed to select file. Please check permissions.', 'error');
+        }
+      });
+
+      gdriveFilesContainer.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast(err.message, 'error');
+    gdriveBrowserLoading.classList.add('hidden');
+  }
+};
+
+if (gdriveBrowserBackBtn) {
+  gdriveBrowserBackBtn.addEventListener('click', () => {
+    const token = sessionStorage.getItem('gdrive_token');
+    if (token) {
+      listLessonsFolders(token);
+    }
+  });
+}
+
 if (browseDriveBtn) {
   browseDriveBtn.addEventListener('click', async () => {
     const token = sessionStorage.getItem('gdrive_token');
     if (!token) return showToast('Not authenticated with Google Drive', 'error');
 
-    const subjectName = topicSubject.value.trim() || 'General';
+    const subjectName = topicSubject.value.trim();
 
-    // Reset Modal UI
-    gdriveBrowserSubtitle.textContent = `Lessons > ${subjectName}`;
-    gdriveBrowserLoading.classList.remove('hidden');
-    gdriveBrowserEmpty.classList.add('hidden');
-    gdriveFilesContainer.classList.add('hidden');
-    gdriveFilesContainer.innerHTML = '';
-    
     gdriveBrowserModal.classList.remove('hidden');
     gdriveBrowserModal.classList.add('flex');
 
-    try {
-      // 1. Resolve 'Lessons' parent folder
-      const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
+    if (subjectName) {
+      // Try to resolve this subject directly first
+      gdriveBrowserSubtitle.textContent = `Lessons > ${subjectName}`;
+      gdriveBrowserLoading.classList.remove('hidden');
+      gdriveBrowserEmpty.classList.add('hidden');
+      gdriveFilesContainer.classList.add('hidden');
+      gdriveFilesContainer.innerHTML = '';
+      if (gdriveBrowserBackBtn) gdriveBrowserBackBtn.classList.remove('hidden');
 
-      // 2. Search for the Subject subfolder inside 'Lessons'
-      const sanitizedSubject = subjectName.replace(/'/g, "\\'");
-      const queryStr = `mimeType = 'application/vnd.google-apps.folder' and (name = '${sanitizedSubject}' or name = '${sanitizedSubject.toLowerCase()}' or name = '${sanitizedSubject.toUpperCase()}') and '${lessonsFolderId}' in parents and trashed = false`;
-      const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)&includeItemsFromAllDrives=true&supportsAllDrives=true`;
-      const searchRes = await fetch(searchUrl, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!searchRes.ok) throw new Error(`Failed to search for folder "${subjectName}"`);
-
-      const searchData = await searchRes.json();
-      if (!searchData.files || searchData.files.length === 0) {
-        showEmptyBrowserState(subjectName);
-        return;
-      }
-
-      const subjectFolderId = searchData.files[0].id;
-
-      // 3. Query files inside the resolved subject subfolder
-      const filesUrl = `https://www.googleapis.com/drive/v3/files?q='${subjectFolderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,webViewLink)&orderBy=name&includeItemsFromAllDrives=true&supportsAllDrives=true`;
-      const filesRes = await fetch(filesUrl, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!filesRes.ok) throw new Error('Failed to retrieve lesson files from folder');
-
-      const filesData = await filesRes.json();
-      if (!filesData.files || filesData.files.length === 0) {
-        showEmptyBrowserState(subjectName);
-        return;
-      }
-
-      // 4. Render files!
-      gdriveBrowserLoading.classList.add('hidden');
-      gdriveFilesContainer.classList.remove('hidden');
-      
-      filesData.files.forEach(file => {
-        const li = document.createElement('li');
-        li.className = 'flex items-center justify-between p-3.5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/10 transition-all cursor-pointer group';
-        
-        li.innerHTML = `
-          <div class="flex items-center gap-3.5 min-w-0 flex-1">
-            <div class="flex-shrink-0 p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-all">
-              ${getFileIcon(file.mimeType)}
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">${file.name}</p>
-              <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">${file.mimeType.split('/').pop().toUpperCase()}</p>
-            </div>
-          </div>
-          <svg class="w-5 h-5 text-slate-600 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        `;
-
-        li.addEventListener('click', async () => {
-          // Disable row while selecting
-          li.classList.add('pointer-events-none', 'opacity-65');
-          const titleEl = li.querySelector('p');
-          const originalTitle = titleEl.textContent;
-          titleEl.textContent = 'Connecting...';
-
-          try {
-            // Try to make public-viewable, but don't block selection if we don't have permission!
-            try {
-              const permRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}/permissions`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  role: 'reader',
-                  type: 'anyone'
-                })
-              });
-              if (!permRes.ok) {
-                console.warn('Could not update sharing permissions for file. It might be owned by another account.');
-              }
-            } catch (permErr) {
-              console.warn('Sharing permission update failed:', permErr);
-            }
-
-            // 1. Fill input field (this should ALWAYS run!)
-            topicResourceLink.value = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
-            
-            // 2. Clean filename to auto-populate Topic Title
-            const cleanTitle = file.name
-              .replace(/\.[^/.]+$/, "")
-              .replace(/[_-]/g, " ")
-              .replace(/\b\w/g, c => c.toUpperCase());
-            if (topicTitle) topicTitle.value = cleanTitle;
-            
-            // 3. Resolve Subject subfolder
-            const resolvedSubject = topicSubject.value.trim() || subjectName || 'General';
-            if (topicSubject && !topicSubject.value.trim()) {
-              topicSubject.value = resolvedSubject === 'General' ? '' : resolvedSubject;
-            }
-
-            // 4. Trigger AI assist to generate Objectives and Legacy Notes automatically!
-            runAIAssist(cleanTitle, resolvedSubject);
-            
-            showToast(`Attached "${file.name}" & auto-generated curriculum!`, 'success');
-            
-            // Close modal
-            gdriveBrowserModal.classList.add('hidden');
-            gdriveBrowserModal.classList.remove('flex');
-          } catch (err) {
-            console.error(err);
-            titleEl.textContent = originalTitle;
-            li.classList.remove('pointer-events-none', 'opacity-65');
-            showToast('Failed to select file. Please check permissions.', 'error');
-          }
+      try {
+        const lessonsFolderId = await findOrCreateFolder(token, 'Lessons');
+        const sanitizedSubject = subjectName.replace(/'/g, "\\'");
+        const queryStr = `mimeType = 'application/vnd.google-apps.folder' and (name = '${sanitizedSubject}' or name = '${sanitizedSubject.toLowerCase()}' or name = '${sanitizedSubject.toUpperCase()}') and '${lessonsFolderId}' in parents and trashed = false`;
+        const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryStr)}&fields=files(id,name)&includeItemsFromAllDrives=true&supportsAllDrives=true`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        gdriveFilesContainer.appendChild(li);
-      });
-
-    } catch (err) {
-      console.error(err);
-      showToast(err.message, 'error');
-      gdriveBrowserModal.classList.add('hidden');
-      gdriveBrowserModal.classList.remove('flex');
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData.files && searchData.files.length > 0) {
+            // Found matching folder!
+            listLessonsFilesInFolder(token, searchData.files[0].id, searchData.files[0].name);
+            return;
+          }
+        }
+        // If not found, list folders
+        listLessonsFolders(token);
+      } catch (err) {
+        listLessonsFolders(token);
+      }
+    } else {
+      // List folders at top-level
+      listLessonsFolders(token);
     }
   });
 }
